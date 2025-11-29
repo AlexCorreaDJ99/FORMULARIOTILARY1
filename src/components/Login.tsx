@@ -43,12 +43,9 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <img
-            src="https://tilary.com.br/wp-content/uploads/2023/07/cropped-Tilary-Site-2-1.png"
-            alt="Tilary Logo"
-            className="h-16 mx-auto mb-4"
-          />
-          <h1 className="text-3xl font-bold text-gray-900">Tilary</h1>
+          <div className="mb-4">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">TILARY</h1>
+          </div>
           <p className="text-gray-600 mt-2">Sistema de Gestão de Conteúdo</p>
         </div>
 

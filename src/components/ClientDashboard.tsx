@@ -134,11 +134,8 @@ export default function ClientDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
-              <img
-                src="https://tilary.com.br/wp-content/uploads/2023/07/cropped-Tilary-Site-2-1.png"
-                alt="Tilary Logo"
-                className="h-8"
-              />
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">TILARY</span>
+              <div className="h-6 w-px bg-gray-300"></div>
               <h1 className="text-xl font-bold text-gray-900">Formulário de Submissão</h1>
             </div>
             <div className="flex items-center gap-4">
