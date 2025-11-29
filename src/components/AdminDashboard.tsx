@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Client, AppForm } from '../lib/supabase';
-import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download } from 'lucide-react';
+import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus } from 'lucide-react';
 import CreateClientModal from './CreateClientModal';
+import CreateAdminModal from './CreateAdminModal';
 
 type ClientWithForm = Client & {
   form?: AppForm;
@@ -13,6 +14,7 @@ export default function AdminDashboard() {
   const [clients, setClients] = useState<ClientWithForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientWithForm | null>(null);
 
   useEffect(() => {
@@ -130,6 +132,14 @@ export default function AdminDashboard() {
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">{profile?.name}</span>
+              <button
+                onClick={() => setShowCreateAdminModal(true)}
+                className="flex items-center gap-2 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
+                title="Cadastrar Administrador"
+              >
+                <UserPlus className="w-4 h-4" />
+                Novo Admin
+              </button>
               <button
                 onClick={signOut}
                 className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
@@ -265,6 +275,16 @@ export default function AdminDashboard() {
           onSuccess={() => {
             setShowCreateModal(false);
             loadClients();
+          }}
+        />
+      )}
+
+      {showCreateAdminModal && (
+        <CreateAdminModal
+          onClose={() => setShowCreateAdminModal(false)}
+          onSuccess={() => {
+            setShowCreateAdminModal(false);
+            alert('Administrador criado com sucesso!');
           }}
         />
       )}
