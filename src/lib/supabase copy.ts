@@ -1,0 +1,64 @@
+import { createClient } from '@supabase/Bolt Database-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Bolt Database environment variables');
+}
+
+export const Bolt Database = createClient(supabaseUrl, supabaseAnonKey);
+
+export type Profile = {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'client';
+  created_at: string;
+  updated_at: string;
+};
+
+export type Client = {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  access_code: string;
+  status: 'active' | 'inactive';
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AppForm = {
+  id: string;
+  client_id: string;
+  status: 'not_started' | 'in_progress' | 'completed';
+  progress_percentage: number;
+  driver_app_name?: string;
+  passenger_app_name?: string;
+  support_email?: string;
+  short_description?: string;
+  long_description?: string;
+  playstore_short_description?: string;
+  playstore_long_description?: string;
+  appstore_description?: string;
+  driver_terms?: string;
+  passenger_terms?: string;
+  company_terms?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type FormImage = {
+  id: string;
+  form_id: string;
+  image_type: 'logo_1024' | 'logo_352' | 'feature' | 'banner_1024';
+  app_type: 'driver' | 'passenger';
+  store_type: 'playstore' | 'appstore' | 'both';
+  file_url: string;
+  file_name: string;
+  dimensions: string;
+  size_bytes: number;
+  uploaded_at: string;
+};

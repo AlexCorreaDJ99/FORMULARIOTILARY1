@@ -1,0 +1,264 @@
+import { useState, useEffect } from 'react';
+import { supabase, FormImage } from '../lib/supabase';
+import { Upload, X, CheckCircle, AlertCircle, Image as ImageIcon } from 'lucide-react';
+
+type Props = {
+  formId: string;
+  label: string;
+  imageType: 'logo_1024' | 'logo_352' | 'feature' | 'banner_1024';
+  appType: 'driver' | 'passenger';
+  storeType: 'playstore' | 'appstore' | 'both';
+  requiredDimensions: { width: number; height: number };
+  requiredFormat: 'png' | 'jpeg';
+  transparent?: boolean;
+  multiple?: boolean;
+  minImages?: number;
+  maxImages?: number;
+};
+
+export default function ImageUpload({
+  formId,
+  label,
+  imageType,
+  appType,
+  storeType,
+  requiredDimensions,
+  requiredFormat,
+  transparent = false,
+  multiple = false,
+  minImages = 1,
+  maxImages = 1,
+}: Props) {
+  const [images, setImages] = useState<FormImage[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    loadImages();
+  }, [formId, imageType, appType, storeType]);
+
+  const loadImages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('form_images')
+        .select('*')
+        .eq('form_id', formId)
+        .eq('image_type', imageType)
+        .eq('app_type', appType)
+        .eq('store_type', storeType);
+
+      if (error) throw error;
+      setImages(data || []);
+    } catch (err) {
+      console.error('Error loading images:', err);
+    }
+  };
+
+  const validateImage = (file: File): Promise<{ valid: boolean; error?: string }> => {
+    return new Promise((resolve) => {
+      const validTypes = requiredFormat === 'png' ? ['image/png'] : ['image/jpeg', 'image/jpg'];
+
+      if (!validTypes.includes(file.type)) {
+        resolve({
+          valid: false,
+          error: `Formato inválido. Use ${requiredFormat.toUpperCase()}`,
+        });
+        return;
+      }
+
+      const img = new window.Image();
+      const url = URL.createObjectURL(file);
+
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+
+        if (img.width !== requiredDimensions.width || img.height !== requiredDimensions.height) {
+          resolve({
+            valid: false,
+            error: `Dimensões incorretas. Esperado: ${requiredDimensions.width}x${requiredDimensions.height}, Recebido: ${img.width}x${img.height}`,
+          });
+          return;
+        }
+
+        resolve({ valid: true });
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve({ valid: false, error: 'Erro ao carregar imagem' });
+      };
+
+      img.src = url;
+    });
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    if (!multiple && files.length > 1) {
+      setError('Selecione apenas uma imagem');
+      return;
+    }
+
+    if (multiple && images.length + files.length > maxImages) {
+      setError(`Máximo de ${maxImages} imagens permitido`);
+      return;
+    }
+
+    setError('');
+    setUploading(true);
+
+    try {
+      for (const file of files) {
+        const validation = await validateImage(file);
+
+        if (!validation.valid) {
+          setError(validation.error || 'Imagem inválida');
+          continue;
+        }
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${formId}/${imageType}_${appType}_${storeType}_${Date.now()}.${fileExt}`;
+        const filePath = `form-images/${fileName}`;
+
+        const { error: uploadError, data } = await supabase.storage
+          .from('app-submissions')
+          .upload(filePath, file, {
+            upsert: false,
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('app-submissions')
+          .getPublicUrl(filePath);
+
+        const { error: dbError } = await supabase.from('form_images').insert({
+          form_id: formId,
+          image_type: imageType,
+          app_type: appType,
+          store_type: storeType,
+          file_url: publicUrl,
+          file_name: file.name,
+          dimensions: `${requiredDimensions.width}x${requiredDimensions.height}`,
+          size_bytes: file.size,
+        });
+
+        if (dbError) throw dbError;
+      }
+
+      await loadImages();
+    } catch (err) {
+      console.error('Error uploading:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao fazer upload');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDelete = async (imageId: string, fileUrl: string) => {
+    if (!confirm('Deseja excluir esta imagem?')) return;
+
+    try {
+      const filePath = fileUrl.split('/').slice(-2).join('/');
+
+      await supabase.storage.from('app-submissions').remove([`form-images/${filePath}`]);
+
+      const { error } = await supabase.from('form_images').delete().eq('id', imageId);
+
+      if (error) throw error;
+      await loadImages();
+    } catch (err) {
+      console.error('Error deleting image:', err);
+      setError('Erro ao excluir imagem');
+    }
+  };
+
+  const canUploadMore = multiple ? images.length < maxImages : images.length === 0;
+  const imageCount = images.length;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <label className="block text-sm font-medium text-gray-700">{label}</label>
+        {multiple && (
+          <span className="text-xs text-gray-500">
+            {imageCount}/{maxImages} imagens
+            {minImages > 0 && ` (mínimo ${minImages})`}
+          </span>
+        )}
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
+        {images.map((image) => (
+          <div key={image.id} className="relative group border-2 border-green-200 rounded-lg overflow-hidden bg-green-50">
+            <img
+              src={image.file_url}
+              alt={image.file_name}
+              className="w-full h-32 object-cover"
+            />
+            <div className="absolute top-2 right-2 flex gap-1">
+              <div className="bg-green-600 text-white p-1 rounded-full">
+                <CheckCircle className="w-4 h-4" />
+              </div>
+              <button
+                onClick={() => handleDelete(image.id, image.file_url)}
+                className="bg-red-600 text-white p-1 rounded-full hover:bg-red-700 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+              <p className="truncate">{image.file_name}</p>
+              <p className="text-gray-300">{image.dimensions}</p>
+            </div>
+          </div>
+        ))}
+
+        {canUploadMore && (
+          <label className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all h-32">
+            <input
+              type="file"
+              accept={requiredFormat === 'png' ? 'image/png' : 'image/jpeg,image/jpg'}
+              onChange={handleFileSelect}
+              className="hidden"
+              multiple={multiple}
+              disabled={uploading}
+            />
+            {uploading ? (
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <span className="text-sm text-gray-600">Enviando...</span>
+              </div>
+            ) : (
+              <>
+                <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                <span className="text-sm text-gray-600 text-center">
+                  {multiple ? 'Adicionar imagens' : 'Adicionar imagem'}
+                </span>
+                <span className="text-xs text-gray-500 mt-1">
+                  {requiredDimensions.width}x{requiredDimensions.height}
+                </span>
+              </>
+            )}
+          </label>
+        )}
+      </div>
+
+      <div className="text-xs text-gray-500 space-y-1">
+        <p>• Dimensões: {requiredDimensions.width}x{requiredDimensions.height} pixels</p>
+        <p>• Formato: {requiredFormat.toUpperCase()}</p>
+        {transparent && <p>• Fundo transparente obrigatório</p>}
+      </div>
+    </div>
+  );
+}

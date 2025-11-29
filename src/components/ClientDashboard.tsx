@@ -1,0 +1,223 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase, AppForm, Client } from '../lib/supabase';
+import { LogOut, Save, CheckCircle } from 'lucide-react';
+import SetupSection from './form-sections/SetupSection';
+import PlayStoreSection from './form-sections/PlayStoreSection';
+import AppStoreSection from './form-sections/AppStoreSection';
+import TermsSection from './form-sections/TermsSection';
+
+export default function ClientDashboard() {
+  const { signOut, user } = useAuth();
+  const [client, setClient] = useState<Client | null>(null);
+  const [form, setForm] = useState<AppForm | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [activeSection, setActiveSection] = useState('setup');
+
+  useEffect(() => {
+    loadClientData();
+  }, [user]);
+
+  const loadClientData = async () => {
+    if (!user) return;
+
+    try {
+      const { data: clientData, error: clientError } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (clientError) throw clientError;
+      setClient(clientData);
+
+      if (clientData) {
+        const { data: formData, error: formError } = await supabase
+          .from('app_forms')
+          .select('*')
+          .eq('client_id', clientData.id)
+          .maybeSingle();
+
+        if (formError) throw formError;
+        setForm(formData);
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateProgress = (formData: Partial<AppForm>) => {
+    const fields = [
+      'driver_app_name',
+      'passenger_app_name',
+      'support_email',
+      'short_description',
+      'long_description',
+      'playstore_short_description',
+      'playstore_long_description',
+      'appstore_description',
+      'driver_terms',
+      'passenger_terms',
+    ];
+
+    const filled = fields.filter((field) => {
+      const value = formData[field as keyof AppForm];
+      return value && String(value).trim().length > 0;
+    }).length;
+
+    return Math.round((filled / fields.length) * 100);
+  };
+
+  const handleSaveForm = async (updates: Partial<AppForm>) => {
+    if (!form || !client) return;
+
+    setSaving(true);
+    try {
+      const updatedData = { ...form, ...updates };
+      const progress = calculateProgress(updatedData);
+
+      let status = form.status;
+      if (progress === 100) {
+        status = 'completed';
+      } else if (progress > 0) {
+        status = 'in_progress';
+      }
+
+      const { error } = await supabase
+        .from('app_forms')
+        .update({
+          ...updates,
+          progress_percentage: progress,
+          status,
+        })
+        .eq('id', form.id);
+
+      if (error) throw error;
+
+      setForm({ ...form, ...updates, progress_percentage: progress, status });
+    } catch (error) {
+      console.error('Error saving form:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const sections = [
+    { id: 'setup', label: 'Setup Inicial', icon: '⚙️' },
+    { id: 'playstore', label: 'Play Store', icon: '🤖' },
+    { id: 'appstore', label: 'App Store', icon: '🍎' },
+    { id: 'terms', label: 'Termos de Uso', icon: '📄' },
+  ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (!client || !form) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-red-600">Erro ao carregar dados do cliente</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white shadow-sm border-b sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-bold text-gray-900">Formulário de Submissão</h1>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">{client.name}</p>
+                  <p className="text-xs text-gray-500">{form.progress_percentage}% completo</p>
+                </div>
+                <div className="w-16 bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all"
+                    style={{ width: `${form.progress_percentage}%` }}
+                  />
+                </div>
+              </div>
+              {saving && (
+                <div className="flex items-center gap-2 text-blue-600 text-sm">
+                  <Save className="w-4 h-4 animate-pulse" />
+                  Salvando...
+                </div>
+              )}
+              <button
+                onClick={signOut}
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Sair
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-12 gap-6">
+          <div className="col-span-3">
+            <div className="bg-white rounded-xl shadow-sm p-4 sticky top-24">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-4">Seções</h3>
+              <nav className="space-y-2">
+                {sections.map((section) => (
+                  <button
+                    key={section.id}
+                    onClick={() => setActiveSection(section.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                      activeSection === section.id
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="text-xl">{section.icon}</span>
+                    <span>{section.label}</span>
+                  </button>
+                ))}
+              </nav>
+
+              {form.status === 'completed' && (
+                <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="text-sm font-medium">Formulário Completo!</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="col-span-9">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              {activeSection === 'setup' && (
+                <SetupSection form={form} onSave={handleSaveForm} />
+              )}
+              {activeSection === 'playstore' && (
+                <PlayStoreSection form={form} onSave={handleSaveForm} />
+              )}
+              {activeSection === 'appstore' && (
+                <AppStoreSection form={form} onSave={handleSaveForm} />
+              )}
+              {activeSection === 'terms' && (
+                <TermsSection form={form} onSave={handleSaveForm} />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
