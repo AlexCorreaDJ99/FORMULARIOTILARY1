@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { LogIn, Key } from 'lucide-react';
 
 export default function Login() {
-  const [isAdminLogin, setIsAdminLogin] = useState(true);
+  const [isAdminLogin, setIsAdminLogin] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [accessCode, setAccessCode] = useState('');
@@ -51,16 +51,6 @@ export default function Login() {
 
         <div className="flex rounded-lg bg-gray-100 p-1 mb-6">
           <button
-            onClick={() => setIsAdminLogin(true)}
-            className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
-              isAdminLogin
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Administrador
-          </button>
-          <button
             onClick={() => setIsAdminLogin(false)}
             className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
               !isAdminLogin
@@ -69,6 +59,16 @@ export default function Login() {
             }`}
           >
             Cliente
+          </button>
+          <button
+            onClick={() => setIsAdminLogin(true)}
+            className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
+              isAdminLogin
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Administrador
           </button>
         </div>
 
