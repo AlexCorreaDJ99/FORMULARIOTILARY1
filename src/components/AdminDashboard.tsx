@@ -96,18 +96,79 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteClient = async (clientId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este cliente?')) return;
+    if (!confirm('Tem certeza que deseja excluir este cliente? Todos os dados e arquivos relacionados serão removidos permanentemente.')) return;
 
     try {
-      const { error } = await supabase
+      const { data: formData } = await supabase
+        .from('app_forms')
+        .select('id')
+        .eq('client_id', clientId)
+        .maybeSingle();
+
+      if (formData) {
+        const { data: images } = await supabase
+          .from('form_images')
+          .select('file_url')
+          .eq('form_id', formData.id);
+
+        if (images && images.length > 0) {
+          for (const image of images) {
+            const filePath = image.file_url.split('/').pop();
+            if (filePath) {
+              await supabase.storage
+                .from('app-images')
+                .remove([filePath]);
+            }
+          }
+        }
+
+        await supabase
+          .from('form_images')
+          .delete()
+          .eq('form_id', formData.id);
+
+        await supabase
+          .from('app_forms')
+          .delete()
+          .eq('id', formData.id);
+      }
+
+      const { data: clientData } = await supabase
+        .from('clients')
+        .select('user_id')
+        .eq('id', clientId)
+        .single();
+
+      await supabase
         .from('clients')
         .delete()
         .eq('id', clientId);
 
-      if (error) throw error;
+      if (clientData?.user_id) {
+        await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', clientData.user_id);
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`;
+          await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId: clientData.user_id }),
+          });
+        }
+      }
+
       loadClients();
+      alert('Cliente excluído com sucesso!');
     } catch (error) {
       console.error('Error deleting client:', error);
+      alert('Erro ao excluir cliente. Por favor, tente novamente.');
     }
   };
 
