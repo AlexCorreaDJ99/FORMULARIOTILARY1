@@ -43,11 +43,13 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
-            <LogIn className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">App Submission</h1>
-          <p className="text-gray-600 mt-2">Sistema de Gestão de Formulários</p>
+          <img
+            src="https://tilary.com.br/wp-content/uploads/2023/07/cropped-Tilary-Site-2-1.png"
+            alt="Tilary Logo"
+            className="h-16 mx-auto mb-4"
+          />
+          <h1 className="text-3xl font-bold text-gray-900">Tilary</h1>
+          <p className="text-gray-600 mt-2">Sistema de Gestão de Conteúdo</p>
         </div>
 
         <div className="flex rounded-lg bg-gray-100 p-1 mb-6">
