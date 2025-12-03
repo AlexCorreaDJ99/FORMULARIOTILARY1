@@ -10,7 +10,8 @@ type Props = {
 
 export default function AppStoreSection({ form, onSave }: Props) {
   const [formData, setFormData] = useState({
-    appstore_description: form.appstore_description || '',
+    appstore_driver_description: form.appstore_driver_description || '',
+    appstore_passenger_description: form.appstore_passenger_description || '',
   });
 
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -59,24 +60,51 @@ export default function AppStoreSection({ form, onSave }: Props) {
       </div>
 
       <div className="space-y-6 pt-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Descrição do App *
-            <span className="text-gray-500 font-normal ml-2">
-              ({formData.appstore_description.length}/4000 caracteres)
-            </span>
-          </label>
-          <textarea
-            value={formData.appstore_description}
-            onChange={(e) => handleChange('appstore_description', e.target.value.slice(0, 4000))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[200px]"
-            placeholder="Descrição completa do app para a App Store"
-            maxLength={4000}
-            required
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            Descreva as funcionalidades e benefícios do app para usuários iOS
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <h4 className="font-medium text-amber-900 mb-1">Importante</h4>
+          <p className="text-sm text-amber-800">
+            As descrições do app Motorista e do app Passageiro devem ser DIFERENTES, focando nas funcionalidades específicas de cada perfil de usuário.
           </p>
+        </div>
+
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">App Motorista</h3>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Descrição do App *
+              <span className="text-gray-500 font-normal ml-2">
+                ({formData.appstore_driver_description.length}/4000 caracteres)
+              </span>
+            </label>
+            <textarea
+              value={formData.appstore_driver_description}
+              onChange={(e) => handleChange('appstore_driver_description', e.target.value.slice(0, 4000))}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[200px]"
+              placeholder="Descrição completa do app para motoristas (aceitar corridas, ganhar dinheiro, etc.)"
+              maxLength={4000}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">App Passageiro</h3>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Descrição do App *
+              <span className="text-gray-500 font-normal ml-2">
+                ({formData.appstore_passenger_description.length}/4000 caracteres)
+              </span>
+            </label>
+            <textarea
+              value={formData.appstore_passenger_description}
+              onChange={(e) => handleChange('appstore_passenger_description', e.target.value.slice(0, 4000))}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[200px]"
+              placeholder="Descrição completa do app para passageiros (solicitar corrida, segurança, facilidade, etc.)"
+              maxLength={4000}
+              required
+            />
+          </div>
         </div>
 
         <div className="border-t pt-6">

@@ -38,11 +38,12 @@ export type AppForm = {
   driver_app_name?: string;
   passenger_app_name?: string;
   support_email?: string;
-  short_description?: string;
-  long_description?: string;
-  playstore_short_description?: string;
-  playstore_long_description?: string;
-  appstore_description?: string;
+  playstore_driver_short_description?: string;
+  playstore_driver_long_description?: string;
+  playstore_passenger_short_description?: string;
+  playstore_passenger_long_description?: string;
+  appstore_driver_description?: string;
+  appstore_passenger_description?: string;
   driver_terms?: string;
   passenger_terms?: string;
   company_terms?: string;

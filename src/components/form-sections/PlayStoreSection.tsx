@@ -10,8 +10,10 @@ type Props = {
 
 export default function PlayStoreSection({ form, onSave }: Props) {
   const [formData, setFormData] = useState({
-    playstore_short_description: form.playstore_short_description || '',
-    playstore_long_description: form.playstore_long_description || '',
+    playstore_driver_short_description: form.playstore_driver_short_description || '',
+    playstore_driver_long_description: form.playstore_driver_long_description || '',
+    playstore_passenger_short_description: form.playstore_passenger_short_description || '',
+    playstore_passenger_long_description: form.playstore_passenger_long_description || '',
   });
 
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -60,39 +62,91 @@ export default function PlayStoreSection({ form, onSave }: Props) {
       </div>
 
       <div className="space-y-6 pt-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Descrição Curta (Slogan) *
-            <span className="text-gray-500 font-normal ml-2">
-              ({formData.playstore_short_description.length}/80 caracteres)
-            </span>
-          </label>
-          <input
-            type="text"
-            value={formData.playstore_short_description}
-            onChange={(e) => handleChange('playstore_short_description', e.target.value.slice(0, 80))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Slogan impactante para a Play Store"
-            maxLength={80}
-            required
-          />
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <h4 className="font-medium text-amber-900 mb-1">Importante</h4>
+          <p className="text-sm text-amber-800">
+            As descrições do app Motorista e do app Passageiro devem ser DIFERENTES, focando nas funcionalidades específicas de cada perfil de usuário.
+          </p>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Descrição Longa *
-            <span className="text-gray-500 font-normal ml-2">
-              ({formData.playstore_long_description.length}/4000 caracteres)
-            </span>
-          </label>
-          <textarea
-            value={formData.playstore_long_description}
-            onChange={(e) => handleChange('playstore_long_description', e.target.value.slice(0, 4000))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[200px]"
-            placeholder="Descrição completa do app para a Play Store"
-            maxLength={4000}
-            required
-          />
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">App Motorista</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Descrição Curta (Slogan) *
+                <span className="text-gray-500 font-normal ml-2">
+                  ({formData.playstore_driver_short_description.length}/80 caracteres)
+                </span>
+              </label>
+              <input
+                type="text"
+                value={formData.playstore_driver_short_description}
+                onChange={(e) => handleChange('playstore_driver_short_description', e.target.value.slice(0, 80))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Slogan impactante para motoristas"
+                maxLength={80}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Descrição Longa *
+                <span className="text-gray-500 font-normal ml-2">
+                  ({formData.playstore_driver_long_description.length}/4000 caracteres)
+                </span>
+              </label>
+              <textarea
+                value={formData.playstore_driver_long_description}
+                onChange={(e) => handleChange('playstore_driver_long_description', e.target.value.slice(0, 4000))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[200px]"
+                placeholder="Descrição completa do app para motoristas (aceitar corridas, ganhar dinheiro, etc.)"
+                maxLength={4000}
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">App Passageiro</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Descrição Curta (Slogan) *
+                <span className="text-gray-500 font-normal ml-2">
+                  ({formData.playstore_passenger_short_description.length}/80 caracteres)
+                </span>
+              </label>
+              <input
+                type="text"
+                value={formData.playstore_passenger_short_description}
+                onChange={(e) => handleChange('playstore_passenger_short_description', e.target.value.slice(0, 80))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Slogan impactante para passageiros"
+                maxLength={80}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Descrição Longa *
+                <span className="text-gray-500 font-normal ml-2">
+                  ({formData.playstore_passenger_long_description.length}/4000 caracteres)
+                </span>
+              </label>
+              <textarea
+                value={formData.playstore_passenger_long_description}
+                onChange={(e) => handleChange('playstore_passenger_long_description', e.target.value.slice(0, 4000))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[200px]"
+                placeholder="Descrição completa do app para passageiros (solicitar corrida, segurança, facilidade, etc.)"
+                maxLength={4000}
+                required
+              />
+            </div>
+          </div>
         </div>
 
         <div className="border-t pt-6">
