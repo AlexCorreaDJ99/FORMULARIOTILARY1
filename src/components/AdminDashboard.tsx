@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Client, AppForm } from '../lib/supabase';
-import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key } from 'lucide-react';
+import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check } from 'lucide-react';
 import CreateClientModal from './CreateClientModal';
 import CreateAdminModal from './CreateAdminModal';
 import EditAdminPasswordModal from './EditAdminPasswordModal';
@@ -27,6 +27,9 @@ export default function AdminDashboard() {
   const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientWithForm | null>(null);
   const [editPasswordAdmin, setEditPasswordAdmin] = useState<AdminProfile | null>(null);
+  const [editingMeeting, setEditingMeeting] = useState<string | null>(null);
+  const [meetingDate, setMeetingDate] = useState('');
+  const [meetingTime, setMeetingTime] = useState('');
 
   useEffect(() => {
     loadClients();
@@ -106,6 +109,64 @@ export default function AdminDashboard() {
       loadClients();
     } catch (error) {
       console.error('Error updating project status:', error);
+    }
+  };
+
+  const handleStartEditMeeting = (formId: string, currentDate?: string, currentTime?: string) => {
+    setEditingMeeting(formId);
+    setMeetingDate(currentDate || '');
+    setMeetingTime(currentTime || '');
+  };
+
+  const handleCancelEditMeeting = () => {
+    setEditingMeeting(null);
+    setMeetingDate('');
+    setMeetingTime('');
+  };
+
+  const handleSaveMeeting = async (formId: string) => {
+    if (!meetingDate || !meetingTime) {
+      alert('Por favor, preencha data e horário da reunião');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('app_forms')
+        .update({
+          meeting_scheduled: true,
+          meeting_date: meetingDate,
+          meeting_time: meetingTime
+        })
+        .eq('id', formId);
+
+      if (error) throw error;
+      handleCancelEditMeeting();
+      loadClients();
+    } catch (error) {
+      console.error('Error saving meeting:', error);
+      alert('Erro ao salvar reunião');
+    }
+  };
+
+  const handleRemoveMeeting = async (formId: string) => {
+    if (!confirm('Deseja remover esta reunião?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('app_forms')
+        .update({
+          meeting_scheduled: false,
+          meeting_date: null,
+          meeting_time: null
+        })
+        .eq('id', formId);
+
+      if (error) throw error;
+      loadClients();
+    } catch (error) {
+      console.error('Error removing meeting:', error);
+      alert('Erro ao remover reunião');
     }
   };
 
@@ -322,6 +383,9 @@ export default function AdminDashboard() {
                       Status Projeto
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Reunião
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status Cliente
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -376,6 +440,84 @@ export default function AdminDashboard() {
                             <option value="under_review">Em Análise</option>
                             <option value="completed">Concluído</option>
                           </select>
+                        ) : (
+                          <span className="text-xs text-gray-400">N/A</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {client.form?.id ? (
+                          editingMeeting === client.form.id ? (
+                            <div className="flex flex-col gap-2">
+                              <input
+                                type="date"
+                                value={meetingDate}
+                                onChange={(e) => setMeetingDate(e.target.value)}
+                                className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:border-blue-500"
+                                style={{ focusRingColor: '#e40033' }}
+                              />
+                              <input
+                                type="time"
+                                value={meetingTime}
+                                onChange={(e) => setMeetingTime(e.target.value)}
+                                className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:border-blue-500"
+                                style={{ focusRingColor: '#e40033' }}
+                              />
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={() => handleSaveMeeting(client.form!.id)}
+                                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs text-white rounded"
+                                  style={{ backgroundColor: '#e40033' }}
+                                  title="Salvar"
+                                >
+                                  <Check className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={handleCancelEditMeeting}
+                                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                                  title="Cancelar"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          ) : client.form.meeting_scheduled ? (
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1 text-xs text-gray-700">
+                                <Calendar className="w-3 h-3" style={{ color: '#e40033' }} />
+                                <span>{new Date(client.form.meeting_date!).toLocaleDateString('pt-BR')}</span>
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                {client.form.meeting_time}
+                              </div>
+                              <div className="flex gap-1 mt-1">
+                                <button
+                                  onClick={() => handleStartEditMeeting(client.form!.id, client.form!.meeting_date!, client.form!.meeting_time!)}
+                                  className="text-xs px-2 py-0.5 rounded"
+                                  style={{ color: '#e40033', borderColor: '#e40033', border: '1px solid' }}
+                                  title="Editar"
+                                >
+                                  Editar
+                                </button>
+                                <button
+                                  onClick={() => handleRemoveMeeting(client.form!.id)}
+                                  className="text-xs text-gray-500 hover:text-red-600 px-2 py-0.5 rounded border border-gray-300"
+                                  title="Remover"
+                                >
+                                  Remover
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleStartEditMeeting(client.form.id)}
+                              className="flex items-center gap-1 text-xs px-2 py-1 rounded"
+                              style={{ color: '#e40033', borderColor: '#e40033', border: '1px solid' }}
+                              title="Marcar Reunião"
+                            >
+                              <Calendar className="w-3 h-3" />
+                              Marcar
+                            </button>
+                          )
                         ) : (
                           <span className="text-xs text-gray-400">N/A</span>
                         )}

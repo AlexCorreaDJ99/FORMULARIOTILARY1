@@ -36,6 +36,9 @@ export type AppForm = {
   status: 'not_started' | 'in_progress' | 'completed';
   progress_percentage: number;
   project_status?: string;
+  meeting_scheduled?: boolean;
+  meeting_date?: string;
+  meeting_time?: string;
   driver_app_name?: string;
   passenger_app_name?: string;
   support_email?: string;
