@@ -95,6 +95,20 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleUpdateProjectStatus = async (formId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('app_forms')
+        .update({ project_status: newStatus })
+        .eq('id', formId);
+
+      if (error) throw error;
+      loadClients();
+    } catch (error) {
+      console.error('Error updating project status:', error);
+    }
+  };
+
   const handleDeleteClient = async (clientId: string) => {
     if (!confirm('Tem certeza que deseja excluir este cliente? Todos os dados e arquivos relacionados serão removidos permanentemente.')) return;
 
@@ -299,6 +313,9 @@ export default function AdminDashboard() {
                       Progresso
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status Projeto
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status Cliente
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -335,6 +352,26 @@ export default function AdminDashboard() {
                             {client.form?.progress_percentage || 0}%
                           </span>
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {client.form?.id ? (
+                          <select
+                            value={client.form?.project_status || 'pending'}
+                            onChange={(e) => handleUpdateProjectStatus(client.form!.id, e.target.value)}
+                            className="text-xs border border-gray-300 rounded-lg px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="pending">Pendente</option>
+                            <option value="preparing_images">Preparando Imagens</option>
+                            <option value="configuring_firebase">Configurando Firebase</option>
+                            <option value="admin_panel_delivered">Painel Admin Entregue</option>
+                            <option value="testing_app">Testando App</option>
+                            <option value="submitted_playstore">Enviado Play Store</option>
+                            <option value="submitted_appstore">Enviado App Store</option>
+                            <option value="completed">Completo</option>
+                          </select>
+                        ) : (
+                          <span className="text-xs text-gray-400">N/A</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -374,7 +411,7 @@ export default function AdminDashboard() {
                   ))}
                   {clients.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                         Nenhum cliente cadastrado ainda
                       </td>
                     </tr>

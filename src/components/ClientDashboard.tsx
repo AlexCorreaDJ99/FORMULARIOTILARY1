@@ -6,6 +6,7 @@ import SetupSection from './form-sections/SetupSection';
 import PlayStoreSection from './form-sections/PlayStoreSection';
 import AppStoreSection from './form-sections/AppStoreSection';
 import TermsSection from './form-sections/TermsSection';
+import ProjectStatusSection from './ProjectStatusSection';
 
 export default function ClientDashboard() {
   const { signOut, user } = useAuth();
@@ -13,7 +14,7 @@ export default function ClientDashboard() {
   const [form, setForm] = useState<AppForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState('setup');
+  const [activeSection, setActiveSection] = useState('status');
 
   useEffect(() => {
     loadClientData();
@@ -107,6 +108,7 @@ export default function ClientDashboard() {
   };
 
   const sections = [
+    { id: 'status', label: 'Status do Projeto', icon: '📊' },
     { id: 'setup', label: 'Setup Inicial', icon: '⚙️' },
     { id: 'playstore', label: 'Play Store', icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -213,6 +215,9 @@ export default function ClientDashboard() {
 
           <div className="col-span-9">
             <div className="bg-white rounded-xl shadow-sm p-6">
+              {activeSection === 'status' && (
+                <ProjectStatusSection projectStatus={form.project_status || 'pending'} />
+              )}
               {activeSection === 'setup' && (
                 <SetupSection form={form} onSave={handleSaveForm} />
               )}

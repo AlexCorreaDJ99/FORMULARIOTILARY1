@@ -35,6 +35,7 @@ export type AppForm = {
   client_id: string;
   status: 'not_started' | 'in_progress' | 'completed';
   progress_percentage: number;
+  project_status?: string;
   driver_app_name?: string;
   passenger_app_name?: string;
   support_email?: string;
