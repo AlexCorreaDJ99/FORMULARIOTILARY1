@@ -228,7 +228,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">TILARY</span>
+              <span className="text-2xl font-bold" style={{ color: '#e40033' }}>TILARY</span>
               <div className="h-6 w-px bg-gray-300"></div>
               <h1 className="text-xl font-bold text-gray-900">Painel Administrativo</h1>
             </div>
@@ -236,7 +236,10 @@ export default function AdminDashboard() {
               <span className="text-sm text-gray-600">{profile?.name}</span>
               <button
                 onClick={() => setShowCreateAdminModal(true)}
-                className="flex items-center gap-2 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors border"
+                style={{ color: '#e40033', borderColor: '#e40033' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(228, 0, 51, 0.05)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 title="Cadastrar Administrador"
               >
                 <UserPlus className="w-4 h-4" />
