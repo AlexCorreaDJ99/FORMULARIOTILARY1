@@ -39,6 +39,8 @@ export type AppForm = {
   meeting_scheduled?: boolean;
   meeting_date?: string;
   meeting_time?: string;
+  store_owner?: 'tilary' | 'client';
+  last_activity_date?: string;
   driver_app_name?: string;
   passenger_app_name?: string;
   support_email?: string;
@@ -66,4 +68,13 @@ export type FormImage = {
   dimensions: string;
   size_bytes: number;
   uploaded_at: string;
+};
+
+export type Notification = {
+  id: string;
+  client_id: string;
+  type: 'form_completed' | 'inactive_warning' | 'form_updated';
+  message: string;
+  read: boolean;
+  created_at: string;
 };

@@ -5,6 +5,7 @@ import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield
 import CreateClientModal from './CreateClientModal';
 import CreateAdminModal from './CreateAdminModal';
 import EditAdminPasswordModal from './EditAdminPasswordModal';
+import NotificationBell from './NotificationBell';
 
 type ClientWithForm = Client & {
   form?: AppForm;
@@ -306,6 +307,7 @@ export default function AdminDashboard() {
                 <UserPlus className="w-4 h-4" />
                 Novo Admin
               </button>
+              <NotificationBell />
               <button
                 onClick={signOut}
                 className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"

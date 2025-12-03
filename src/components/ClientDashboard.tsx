@@ -6,6 +6,7 @@ import SetupSection from './form-sections/SetupSection';
 import PlayStoreSection from './form-sections/PlayStoreSection';
 import AppStoreSection from './form-sections/AppStoreSection';
 import TermsSection from './form-sections/TermsSection';
+import StoreOwnerSection from './form-sections/StoreOwnerSection';
 import ProjectStatusSection from './ProjectStatusSection';
 
 export default function ClientDashboard() {
@@ -42,6 +43,13 @@ export default function ClientDashboard() {
 
         if (formError) throw formError;
         setForm(formData);
+
+        if (formData) {
+          await supabase
+            .from('app_forms')
+            .update({ last_activity_date: new Date().toISOString() })
+            .eq('id', formData.id);
+        }
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -80,6 +88,7 @@ export default function ClientDashboard() {
     try {
       const updatedData = { ...form, ...updates };
       const progress = calculateProgress(updatedData);
+      const oldProgress = form.progress_percentage || 0;
 
       let status = form.status;
       if (progress === 100) {
@@ -94,10 +103,25 @@ export default function ClientDashboard() {
           ...updates,
           progress_percentage: progress,
           status,
+          last_activity_date: new Date().toISOString(),
         })
         .eq('id', form.id);
 
       if (error) throw error;
+
+      if (progress === 100 && oldProgress < 100) {
+        await supabase.from('notifications').insert({
+          client_id: client.id,
+          type: 'form_completed',
+          message: `${client.name} completou o formulário (100%)`,
+        });
+      } else if (progress > oldProgress && progress >= 25 && oldProgress < 25) {
+        await supabase.from('notifications').insert({
+          client_id: client.id,
+          type: 'form_updated',
+          message: `${client.name} atualizou o formulário (${progress}%)`,
+        });
+      }
 
       setForm({ ...form, ...updates, progress_percentage: progress, status });
     } catch (error) {
@@ -109,6 +133,7 @@ export default function ClientDashboard() {
 
   const sections = [
     { id: 'setup', label: 'Setup Inicial', icon: '⚙️' },
+    { id: 'store', label: 'Lojas', icon: '🏪' },
     { id: 'playstore', label: 'Play Store', icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
@@ -223,6 +248,9 @@ export default function ClientDashboard() {
               )}
               {activeSection === 'setup' && (
                 <SetupSection form={form} onSave={handleSaveForm} />
+              )}
+              {activeSection === 'store' && (
+                <StoreOwnerSection form={form} onSave={handleSaveForm} />
               )}
               {activeSection === 'playstore' && (
                 <PlayStoreSection form={form} onSave={handleSaveForm} />
