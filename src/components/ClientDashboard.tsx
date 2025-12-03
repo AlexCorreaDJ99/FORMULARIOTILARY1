@@ -14,7 +14,7 @@ export default function ClientDashboard() {
   const [form, setForm] = useState<AppForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState('status');
+  const [activeSection, setActiveSection] = useState('setup');
 
   useEffect(() => {
     loadClientData();
@@ -108,7 +108,6 @@ export default function ClientDashboard() {
   };
 
   const sections = [
-    { id: 'status', label: 'Status do Projeto', icon: '📊' },
     { id: 'setup', label: 'Setup Inicial', icon: '⚙️' },
     { id: 'playstore', label: 'Play Store', icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -121,6 +120,7 @@ export default function ClientDashboard() {
       </svg>
     ) },
     { id: 'terms', label: 'Termos de Uso', icon: '📄' },
+    { id: 'status', label: 'Status do Projeto', icon: '📊' },
   ];
 
   if (loading) {
