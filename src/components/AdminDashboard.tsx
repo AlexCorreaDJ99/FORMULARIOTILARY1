@@ -387,6 +387,9 @@ export default function AdminDashboard() {
                       Status Projeto
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Lojas
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Reunião
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -444,6 +447,19 @@ export default function AdminDashboard() {
                             <option value="under_review">Em Análise</option>
                             <option value="completed">Concluído</option>
                           </select>
+                        ) : (
+                          <span className="text-xs text-gray-400">N/A</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {client.form?.store_owner ? (
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            client.form.store_owner === 'tilary'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {client.form.store_owner === 'tilary' ? 'Tilary' : 'Cliente'}
+                          </span>
                         ) : (
                           <span className="text-xs text-gray-400">N/A</span>
                         )}
@@ -571,7 +587,7 @@ export default function AdminDashboard() {
                   ))}
                   {clients.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                         Nenhum cliente cadastrado ainda
                       </td>
                     </tr>
@@ -800,6 +816,24 @@ function ClientDetailsModal({ client, onClose }: { client: ClientWithForm; onClo
           {client.form ? (
             <div className="space-y-4">
               <h4 className="font-bold text-gray-900 border-b pb-2">Dados do Formulário</h4>
+
+              {client.form.store_owner && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <label className="text-sm font-medium text-blue-900 block mb-1">
+                    Proprietário das Lojas
+                  </label>
+                  <p className="text-blue-900 font-semibold">
+                    {client.form.store_owner === 'tilary'
+                      ? 'Lojas da Tilary'
+                      : 'Lojas do Cliente'}
+                  </p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    {client.form.store_owner === 'tilary'
+                      ? 'Os apps serão publicados nas lojas da Tilary'
+                      : 'Os apps serão publicados nas lojas do próprio cliente'}
+                  </p>
+                </div>
+              )}
 
               {client.form.driver_app_name && (
                 <div>
