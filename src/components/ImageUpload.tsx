@@ -47,6 +47,19 @@ export default function ImageUpload({
   }, [imageSource]);
 
   const handleImageSourceChange = async (source: 'tilary' | 'custom') => {
+    if (source === 'tilary') {
+      const confirmed = confirm(
+        'Confirmar uso de imagens padrão da Tilary?\n\n' +
+        'Ao confirmar, você está escolhendo usar as imagens padrão da Tilary para este tipo de conteúdo. ' +
+        'Esta escolha será contabilizada no progresso do formulário.\n\n' +
+        'Clique em OK para confirmar ou Cancelar para voltar.'
+      );
+
+      if (!confirmed) {
+        return;
+      }
+    }
+
     if (onImageSourceChange) {
       await onImageSourceChange(source);
     }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Client, AppForm } from '../lib/supabase';
-import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check } from 'lucide-react';
+import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check, CheckCircle } from 'lucide-react';
 import CreateClientModal from './CreateClientModal';
 import CreateAdminModal from './CreateAdminModal';
 import EditAdminPasswordModal from './EditAdminPasswordModal';
@@ -809,9 +809,27 @@ function ClientDetailsModal({ client, onClose }: { client: ClientWithForm; onClo
                 </div>
               )}
 
+              {client.form.image_source === 'tilary' && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <div>
+                      <p className="text-sm font-medium text-green-900">
+                        Imagens Padrão da Tilary Selecionadas
+                      </p>
+                      <p className="text-xs text-green-700 mt-1">
+                        O cliente optou por usar as imagens padrão da Tilary.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {images.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500 block mb-2">Imagens Enviadas</label>
+                  <label className="text-sm font-medium text-gray-500 block mb-2">
+                    {client.form.image_source === 'custom' ? 'Imagens Personalizadas Enviadas' : 'Imagens Enviadas'}
+                  </label>
                   <div className="grid grid-cols-4 gap-2">
                     {images.map((img) => (
                       <div key={img.id} className="border rounded p-2">

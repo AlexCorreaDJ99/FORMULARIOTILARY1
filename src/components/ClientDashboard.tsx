@@ -71,6 +71,7 @@ export default function ClientDashboard() {
       'appstore_passenger_description',
       'driver_terms',
       'passenger_terms',
+      'image_source',
     ];
 
     const filled = fields.filter((field) => {
