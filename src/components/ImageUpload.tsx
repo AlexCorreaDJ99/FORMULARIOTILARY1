@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, FormImage, AppForm } from '../lib/supabase';
-import { Upload, X, CheckCircle, AlertCircle, Image as ImageIcon, Download, Info } from 'lucide-react';
+import { Upload, X, CheckCircle, AlertCircle, Image as ImageIcon, Info } from 'lucide-react';
 
 type Props = {
   formId: string;
@@ -53,26 +53,8 @@ export default function ImageUpload({
     setLocalImageSource(source);
   };
 
-  const getTilaryImageUrl = () => {
-    if (storeType === 'playstore' && imageType === 'feature') {
-      return '/PLAY STORE.zip';
-    }
-    if (storeType === 'appstore') {
-      return '/Padrao Iphone.zip';
-    }
-    return null;
-  };
-
-  const handleDownloadTilaryImages = () => {
-    const url = getTilaryImageUrl();
-    if (url) {
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = url.split('/').pop() || 'tilary-images.zip';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+  const hasTilaryImages = () => {
+    return (storeType === 'playstore' && imageType === 'feature') || storeType === 'appstore';
   };
 
   const loadImages = async () => {
@@ -217,9 +199,6 @@ export default function ImageUpload({
   const canUploadMore = multiple ? images.length < maxImages : images.length === 0;
   const imageCount = images.length;
 
-  const tilaryImageUrl = getTilaryImageUrl();
-  const hasTilaryImages = tilaryImageUrl !== null;
-
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -232,7 +211,7 @@ export default function ImageUpload({
         )}
       </div>
 
-      {hasTilaryImages && onImageSourceChange && (
+      {hasTilaryImages() && onImageSourceChange && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
           <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <Info className="w-4 h-4" />
@@ -272,23 +251,25 @@ export default function ImageUpload({
           </div>
 
           {localImageSource === 'tilary' && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm text-blue-900 font-medium mb-2">
+                  <p className="text-sm text-green-900 font-medium mb-2">
                     Imagens padrão da Tilary selecionadas
                   </p>
-                  <p className="text-xs text-blue-800 mb-3">
-                    Baixe o pacote para visualizar as imagens antes de confirmar.
+                  <p className="text-xs text-green-800 mb-3">
+                    Usaremos nossas imagens padrão para este tipo de conteúdo. Você pode visualizar exemplos das imagens que serão utilizadas:
                   </p>
-                  <button
-                    onClick={handleDownloadTilaryImages}
-                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                  <a
+                    href="https://drive.google.com/drive/folders/1YkpUrF1SUKaR6fFhvmjnTkLuFMiU6Wur?usp=sharing"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
                   >
-                    <Download className="w-4 h-4" />
-                    Baixar Imagens da Tilary
-                  </button>
+                    <ImageIcon className="w-4 h-4" />
+                    Visualizar Exemplos no Google Drive
+                  </a>
                 </div>
               </div>
             </div>
