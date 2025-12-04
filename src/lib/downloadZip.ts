@@ -45,31 +45,38 @@ Nome do App Passageiro: ${form.passenger_app_name || 'Não preenchido'}
 Email de Suporte: ${form.support_email || 'Não preenchido'}
 
 ===========================================
-DESCRIÇÕES
+PLAY STORE - APP MOTORISTA
 ===========================================
 
 Descrição Curta:
-${form.short_description || 'Não preenchido'}
+${form.playstore_driver_short_description || 'Não preenchido'}
 
 Descrição Longa:
-${form.long_description || 'Não preenchido'}
+${form.playstore_driver_long_description || 'Não preenchido'}
 
 ===========================================
-PLAY STORE
+PLAY STORE - APP PASSAGEIRO
 ===========================================
 
-Descrição Curta (Play Store):
-${form.playstore_short_description || 'Não preenchido'}
+Descrição Curta:
+${form.playstore_passenger_short_description || 'Não preenchido'}
 
-Descrição Longa (Play Store):
-${form.playstore_long_description || 'Não preenchido'}
+Descrição Longa:
+${form.playstore_passenger_long_description || 'Não preenchido'}
 
 ===========================================
-APP STORE
+APP STORE - APP MOTORISTA
 ===========================================
 
-Descrição (App Store):
-${form.appstore_description || 'Não preenchido'}
+Descrição:
+${form.appstore_driver_description || 'Não preenchido'}
+
+===========================================
+APP STORE - APP PASSAGEIRO
+===========================================
+
+Descrição:
+${form.appstore_passenger_description || 'Não preenchido'}
 
 ===========================================
 TERMOS DE USO
