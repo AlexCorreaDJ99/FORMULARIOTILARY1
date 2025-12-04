@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Client, AppForm } from '../lib/supabase';
-import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check, CheckCircle } from 'lucide-react';
+import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check, CheckCircle, FileText } from 'lucide-react';
 import CreateClientModal from './CreateClientModal';
 import CreateAdminModal from './CreateAdminModal';
 import EditAdminPasswordModal from './EditAdminPasswordModal';
 import NotificationBell from './NotificationBell';
+import NotesModal from './NotesModal';
 
 type ClientWithForm = Client & {
   form?: AppForm;
@@ -31,6 +32,7 @@ export default function AdminDashboard() {
   const [editingMeeting, setEditingMeeting] = useState<string | null>(null);
   const [meetingDate, setMeetingDate] = useState('');
   const [meetingTime, setMeetingTime] = useState('');
+  const [notesClient, setNotesClient] = useState<ClientWithForm | null>(null);
 
   useEffect(() => {
     loadClients();
@@ -543,6 +545,13 @@ export default function AdminDashboard() {
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
+                            onClick={() => setNotesClient(client)}
+                            className="text-purple-600 hover:text-purple-800 p-1 hover:bg-purple-50 rounded"
+                            title="Observações"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => handleToggleStatus(client.id, client.status)}
                             className="text-yellow-600 hover:text-yellow-800 p-1 hover:bg-yellow-50 rounded"
                             title={client.status === 'active' ? 'Desativar' : 'Reativar'}
@@ -675,6 +684,17 @@ export default function AdminDashboard() {
         <ClientDetailsModal
           client={selectedClient}
           onClose={() => setSelectedClient(null)}
+        />
+      )}
+
+      {notesClient && (
+        <NotesModal
+          client={notesClient}
+          onClose={() => setNotesClient(null)}
+          onSuccess={() => {
+            setNotesClient(null);
+            loadClients();
+          }}
         />
       )}
     </div>

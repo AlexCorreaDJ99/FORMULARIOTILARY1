@@ -25,6 +25,7 @@ export type Client = {
   email: string;
   access_code: string;
   status: 'active' | 'inactive';
+  admin_notes?: string;
   created_by: string;
   created_at: string;
   updated_at: string;
