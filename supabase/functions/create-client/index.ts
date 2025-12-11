@@ -30,12 +30,11 @@ Deno.serve(async (req: Request) => {
       throw new Error("Missing authorization header");
     }
 
-    const token = authHeader.replace("Bearer ", "");
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
       throw new Error("Invalid token");
     }
