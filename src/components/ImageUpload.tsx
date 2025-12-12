@@ -440,7 +440,7 @@ export default function ImageUpload({
         <div className="text-xs text-gray-500 space-y-1">
           <p>• Dimensões: {requiredDimensions.width}x{requiredDimensions.height} pixels</p>
           <p>• Formato: {requiredFormat.toUpperCase()}</p>
-          {transparent && <p>• Fundo transparente obrigatório</p>}
+          {transparent && <p></p>}
         </div>
       )}
     </div>
