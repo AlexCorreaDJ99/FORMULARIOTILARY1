@@ -173,7 +173,7 @@ export default function ClientDashboard() {
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold" style={{ color: '#e40033' }}>TILARY</span>
               <div className="h-6 w-px bg-gray-300"></div>
-              <h1 className="text-xl font-bold text-gray-900">Formulário de Submissão</h1>
+              <h1 className="text-xl font-bold text-gray-900">Formulário</h1>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
