@@ -24,6 +24,36 @@ export default function ReviewFormModal({
   const [feedback, setFeedback] = useState(currentFeedback);
   const [loading, setLoading] = useState(false);
 
+  const calculateProgress = (formData: any) => {
+    const fields = [
+      'driver_app_name',
+      'passenger_app_name',
+      'support_email',
+      'playstore_driver_short_description',
+      'playstore_driver_long_description',
+      'playstore_passenger_short_description',
+      'playstore_passenger_long_description',
+      'appstore_driver_description',
+      'appstore_passenger_description',
+      'driver_terms',
+      'passenger_terms',
+    ];
+
+    let filled = fields.filter((field) => {
+      const value = formData[field];
+      return value && String(value).trim().length > 0;
+    }).length;
+
+    if (formData.image_source === 'tilary') {
+      filled += 1;
+    } else if (formData.image_source === 'custom' && formData.images_uploaded) {
+      filled += 1;
+    }
+
+    const total = fields.length + 1;
+    return Math.round((filled / total) * 100);
+  };
+
   const handleReview = async (status: 'approved' | 'rejected') => {
     if (status === 'rejected' && !feedback.trim()) {
       alert('Por favor, informe o que precisa ser corrigido');
@@ -36,6 +66,26 @@ export default function ReviewFormModal({
 
       if (!user) throw new Error('Usuário não autenticado');
 
+      const { data: formData } = await supabase
+        .from('app_forms')
+        .select('*')
+        .eq('id', formId)
+        .single();
+
+      if (!formData) throw new Error('Formulário não encontrado');
+
+      const progress = calculateProgress(formData);
+
+      let finalProgress = progress;
+      let formStatus = formData.status;
+
+      if (status === 'approved') {
+        if (progress >= 95) {
+          finalProgress = 100;
+          formStatus = 'completed';
+        }
+      }
+
       await supabase
         .from('app_forms')
         .update({
@@ -43,6 +93,8 @@ export default function ReviewFormModal({
           review_feedback: feedback.trim() || null,
           reviewed_at: new Date().toISOString(),
           reviewed_by: user.id,
+          progress_percentage: finalProgress,
+          status: formStatus,
         })
         .eq('id', formId);
 

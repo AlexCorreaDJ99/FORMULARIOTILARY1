@@ -55,7 +55,22 @@ export default function RecalculateProgressButton() {
 
       let updated = 0;
       for (const form of forms) {
-        const progress = calculateProgress(form);
+        const { data: images } = await supabase
+          .from('form_images')
+          .select('id')
+          .eq('form_id', form.id);
+
+        const hasImages = images && images.length > 0;
+
+        await supabase
+          .from('app_forms')
+          .update({
+            images_uploaded: hasImages,
+          })
+          .eq('id', form.id);
+
+        const updatedFormData = { ...form, images_uploaded: hasImages };
+        const progress = calculateProgress(updatedFormData);
 
         let status = form.status;
         if (progress === 100) {
