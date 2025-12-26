@@ -47,9 +47,15 @@ export default function PlayStoreSection({ form, onSave }: Props) {
 
   const handleImageSourceChange = async (source: 'tilary' | 'custom') => {
     if (source === 'custom') {
-      await onSave({ image_source: source, images_uploaded: false });
+      await onSave({
+        image_source: source,
+        images_uploaded: false
+      });
     } else {
-      await onSave({ image_source: source });
+      await onSave({
+        image_source: source,
+        images_uploaded: true
+      });
     }
   };
 

@@ -92,6 +92,29 @@ Termos de Uso - App Passageiro:
 ${form.passenger_terms || 'Não preenchido'}
 
 ===========================================
+INFORMAÇÕES DE PUBLICAÇÃO
+===========================================
+
+Titular da Conta Play Store: ${form.playstore_owner_name || 'Não preenchido'}
+Email da Conta Play Store: ${form.playstore_owner_email || 'Não preenchido'}
+
+Titular da Conta App Store: ${form.appstore_owner_name || 'Não preenchido'}
+Email da Conta App Store: ${form.appstore_owner_email || 'Não preenchido'}
+
+===========================================
+IMAGENS
+===========================================
+
+Origem das Imagens de Funcionalidades: ${form.image_source === 'tilary' ? 'Imagens Padrão da Tilary' : 'Imagens Personalizadas do Cliente'}
+
+${form.image_source === 'tilary' ?
+`NOTA: O cliente optou por usar as imagens padrão da Tilary para screenshots e banners.
+Estas imagens não estão incluídas neste ZIP pois serão fornecidas pela equipe Tilary.` :
+`NOTA: O cliente fará upload de suas próprias imagens personalizadas.
+${form.images_uploaded ? 'As imagens personalizadas estão incluídas neste ZIP.' : 'ATENÇÃO: O cliente ainda não enviou todas as imagens personalizadas.'}`
+}
+
+===========================================
 PROGRESSO
 ===========================================
 
