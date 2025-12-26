@@ -5,7 +5,7 @@ import { RefreshCw } from 'lucide-react';
 export default function RecalculateProgressButton() {
   const [loading, setLoading] = useState(false);
 
-  const calculateProgress = (formData: any) => {
+  const calculateProgress = async (formData: any, images: any[]) => {
     const fields = [
       'driver_app_name',
       'passenger_app_name',
@@ -27,8 +27,36 @@ export default function RecalculateProgressButton() {
 
     if (formData.image_source === 'tilary') {
       filled += 1;
-    } else if (formData.image_source === 'custom' && formData.images_uploaded) {
-      filled += 1;
+    } else if (formData.image_source === 'custom') {
+      const requiredImages = {
+        driver_playstore_logo_1024: false,
+        driver_playstore_logo_352: false,
+        driver_appstore_logo_1024: false,
+        driver_appstore_logo_352: false,
+        passenger_playstore_logo_1024: false,
+        passenger_playstore_logo_352: false,
+        passenger_appstore_logo_1024: false,
+        passenger_appstore_logo_352: false,
+        driver_playstore_feature: false,
+        driver_appstore_feature: false,
+        passenger_playstore_feature: false,
+        passenger_appstore_feature: false,
+      };
+
+      if (images && images.length > 0) {
+        images.forEach((img) => {
+          const key = `${img.app_type}_${img.store_type}_${img.image_type}`;
+          if (key in requiredImages) {
+            requiredImages[key as keyof typeof requiredImages] = true;
+          }
+        });
+      }
+
+      const allImagesUploaded = Object.values(requiredImages).every((uploaded) => uploaded);
+
+      if (allImagesUploaded) {
+        filled += 1;
+      }
     }
 
     const total = fields.length + 1;
@@ -57,20 +85,10 @@ export default function RecalculateProgressButton() {
       for (const form of forms) {
         const { data: images } = await supabase
           .from('form_images')
-          .select('id')
+          .select('image_type, app_type, store_type')
           .eq('form_id', form.id);
 
-        const hasImages = images && images.length > 0;
-
-        await supabase
-          .from('app_forms')
-          .update({
-            images_uploaded: hasImages,
-          })
-          .eq('id', form.id);
-
-        const updatedFormData = { ...form, images_uploaded: hasImages };
-        const progress = calculateProgress(updatedFormData);
+        const progress = await calculateProgress(form, images || []);
 
         let status = form.status;
         if (progress === 100) {
@@ -79,11 +97,38 @@ export default function RecalculateProgressButton() {
           status = 'in_progress';
         }
 
+        const requiredImages = {
+          driver_playstore_logo_1024: false,
+          driver_playstore_logo_352: false,
+          driver_appstore_logo_1024: false,
+          driver_appstore_logo_352: false,
+          passenger_playstore_logo_1024: false,
+          passenger_playstore_logo_352: false,
+          passenger_appstore_logo_1024: false,
+          passenger_appstore_logo_352: false,
+          driver_playstore_feature: false,
+          driver_appstore_feature: false,
+          passenger_playstore_feature: false,
+          passenger_appstore_feature: false,
+        };
+
+        if (images && images.length > 0) {
+          images.forEach((img: any) => {
+            const key = `${img.app_type}_${img.store_type}_${img.image_type}`;
+            if (key in requiredImages) {
+              requiredImages[key as keyof typeof requiredImages] = true;
+            }
+          });
+        }
+
+        const allImagesUploaded = Object.values(requiredImages).every((uploaded) => uploaded);
+
         await supabase
           .from('app_forms')
           .update({
             progress_percentage: progress,
             status,
+            images_uploaded: allImagesUploaded,
           })
           .eq('id', form.id);
 

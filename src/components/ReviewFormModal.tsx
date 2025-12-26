@@ -24,7 +24,7 @@ export default function ReviewFormModal({
   const [feedback, setFeedback] = useState(currentFeedback);
   const [loading, setLoading] = useState(false);
 
-  const calculateProgress = (formData: any) => {
+  const calculateProgress = async (formData: any) => {
     const fields = [
       'driver_app_name',
       'passenger_app_name',
@@ -46,8 +46,41 @@ export default function ReviewFormModal({
 
     if (formData.image_source === 'tilary') {
       filled += 1;
-    } else if (formData.image_source === 'custom' && formData.images_uploaded) {
-      filled += 1;
+    } else if (formData.image_source === 'custom') {
+      const { data: images } = await supabase
+        .from('form_images')
+        .select('image_type, app_type, store_type')
+        .eq('form_id', formData.id);
+
+      const requiredImages = {
+        driver_playstore_logo_1024: false,
+        driver_playstore_logo_352: false,
+        driver_appstore_logo_1024: false,
+        driver_appstore_logo_352: false,
+        passenger_playstore_logo_1024: false,
+        passenger_playstore_logo_352: false,
+        passenger_appstore_logo_1024: false,
+        passenger_appstore_logo_352: false,
+        driver_playstore_feature: false,
+        driver_appstore_feature: false,
+        passenger_playstore_feature: false,
+        passenger_appstore_feature: false,
+      };
+
+      if (images && images.length > 0) {
+        images.forEach((img) => {
+          const key = `${img.app_type}_${img.store_type}_${img.image_type}`;
+          if (key in requiredImages) {
+            requiredImages[key as keyof typeof requiredImages] = true;
+          }
+        });
+      }
+
+      const allImagesUploaded = Object.values(requiredImages).every((uploaded) => uploaded);
+
+      if (allImagesUploaded) {
+        filled += 1;
+      }
     }
 
     const total = fields.length + 1;
@@ -74,7 +107,7 @@ export default function ReviewFormModal({
 
       if (!formData) throw new Error('Formulário não encontrado');
 
-      const progress = calculateProgress(formData);
+      const progress = await calculateProgress(formData);
 
       let finalProgress = progress;
       let formStatus = formData.status;
