@@ -115,13 +115,19 @@ export default function RecalculateProgressButton() {
 
         const allImagesUploaded = Object.values(requiredImages).every((uploaded) => uploaded);
 
+        const updateData: any = {
+          progress_percentage: progress,
+          status,
+          images_uploaded: allImagesUploaded,
+        };
+
+        if (progress === 100 && form.progress_percentage < 100 && !form.completion_date) {
+          updateData.completion_date = new Date().toISOString().split('T')[0];
+        }
+
         await supabase
           .from('app_forms')
-          .update({
-            progress_percentage: progress,
-            status,
-            images_uploaded: allImagesUploaded,
-          })
+          .update(updateData)
           .eq('id', form.id);
 
         updated++;
