@@ -1,4 +1,4 @@
-import { CheckCircle, Circle, Clock, AlertTriangle, Check } from 'lucide-react';
+import { CheckCircle, Circle, Clock, AlertTriangle, Check, Calendar, Edit2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface ProjectStatusSectionProps {
@@ -6,7 +6,9 @@ interface ProjectStatusSectionProps {
   reviewStatus?: 'pending' | 'approved' | 'rejected';
   reviewFeedback?: string;
   correctionsCompleted?: boolean;
+  completionDate?: string;
   onMarkCorrectionsComplete?: () => Promise<void>;
+  onUpdateCompletionDate?: (date: string) => Promise<void>;
 }
 
 type StatusStep = {
@@ -53,9 +55,14 @@ export default function ProjectStatusSection({
   reviewStatus,
   reviewFeedback,
   correctionsCompleted,
-  onMarkCorrectionsComplete
+  completionDate,
+  onMarkCorrectionsComplete,
+  onUpdateCompletionDate
 }: ProjectStatusSectionProps) {
   const [marking, setMarking] = useState(false);
+  const [isEditingDate, setIsEditingDate] = useState(false);
+  const [editedDate, setEditedDate] = useState(completionDate || '');
+  const [savingDate, setSavingDate] = useState(false);
   const currentStatusIndex = statusSteps.findIndex(step => step.id === projectStatus);
 
   const handleMarkComplete = async () => {
@@ -66,6 +73,32 @@ export default function ProjectStatusSection({
     } finally {
       setMarking(false);
     }
+  };
+
+  const handleSaveDate = async () => {
+    if (!onUpdateCompletionDate || !editedDate) return;
+    setSavingDate(true);
+    try {
+      await onUpdateCompletionDate(editedDate);
+      setIsEditingDate(false);
+    } finally {
+      setSavingDate(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditedDate(completionDate || '');
+    setIsEditingDate(false);
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   const getStepStatus = (stepIndex: number) => {
@@ -84,6 +117,54 @@ export default function ProjectStatusSection({
         <p className="text-gray-600 mt-2">
           Acompanhe o progresso do desenvolvimento do seu aplicativo em tempo real
         </p>
+      </div>
+
+      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Calendar className="w-5 h-5 text-blue-600" />
+            <div>
+              <h3 className="text-sm font-semibold text-blue-900">Data de Conclusão</h3>
+              {!isEditingDate ? (
+                <p className="text-blue-700 text-sm mt-0.5">
+                  {completionDate ? formatDate(completionDate) : 'Não definida'}
+                </p>
+              ) : (
+                <div className="flex items-center gap-2 mt-1">
+                  <input
+                    type="date"
+                    value={editedDate}
+                    onChange={(e) => setEditedDate(e.target.value)}
+                    className="px-3 py-1.5 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <button
+                    onClick={handleSaveDate}
+                    disabled={savingDate || !editedDate}
+                    className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  >
+                    {savingDate ? 'Salvando...' : 'Salvar'}
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    disabled={savingDate}
+                    className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          {!isEditingDate && onUpdateCompletionDate && (
+            <button
+              onClick={() => setIsEditingDate(true)}
+              className="flex items-center gap-2 px-3 py-2 text-blue-700 hover:bg-blue-100 rounded-lg transition-colors text-sm font-medium"
+            >
+              <Edit2 className="w-4 h-4" />
+              Editar
+            </button>
+          )}
+        </div>
       </div>
 
       {reviewStatus === 'rejected' && reviewFeedback && (

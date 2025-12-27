@@ -36,6 +36,8 @@ export default function AdminDashboard() {
   const [editingMeeting, setEditingMeeting] = useState<string | null>(null);
   const [meetingDate, setMeetingDate] = useState('');
   const [meetingTime, setMeetingTime] = useState('');
+  const [editingCompletionDate, setEditingCompletionDate] = useState<string | null>(null);
+  const [completionDate, setCompletionDate] = useState('');
   const [notesClient, setNotesClient] = useState<ClientWithForm | null>(null);
   const [reviewClient, setReviewClient] = useState<ClientWithForm | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -189,6 +191,46 @@ export default function AdminDashboard() {
     setEditingMeeting(null);
     setMeetingDate('');
     setMeetingTime('');
+  };
+
+  const handleEditCompletionDate = (formId: string, currentDate?: string) => {
+    setEditingCompletionDate(formId);
+    setCompletionDate(currentDate || '');
+  };
+
+  const handleCancelEditCompletionDate = () => {
+    setEditingCompletionDate(null);
+    setCompletionDate('');
+  };
+
+  const handleSaveCompletionDate = async (formId: string) => {
+    try {
+      const client = clients.find(c => c.form?.id === formId);
+
+      const { error } = await supabase
+        .from('app_forms')
+        .update({ completion_date: completionDate || null })
+        .eq('id', formId);
+
+      if (error) throw error;
+
+      await logAdminAction(
+        'completion_date_update',
+        completionDate
+          ? `Atualizou data de conclusão para ${new Date(completionDate).toLocaleDateString('pt-BR')}`
+          : 'Removeu data de conclusão',
+        'form',
+        formId,
+        client?.name,
+        { completion_date: completionDate }
+      );
+
+      handleCancelEditCompletionDate();
+      loadClients();
+    } catch (error) {
+      console.error('Error saving completion date:', error);
+      alert('Erro ao salvar data de conclusão');
+    }
   };
 
   const handleSaveMeeting = async (formId: string) => {
@@ -504,6 +546,9 @@ export default function AdminDashboard() {
                       Status Projeto
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Data Conclusão
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Lojas
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -567,6 +612,61 @@ export default function AdminDashboard() {
                             <option value="under_review">Em Análise</option>
                             <option value="completed">Concluído</option>
                           </select>
+                        ) : (
+                          <span className="text-xs text-gray-400">N/A</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {client.form?.id ? (
+                          editingCompletionDate === client.form.id ? (
+                            <div className="flex flex-col gap-2">
+                              <input
+                                type="date"
+                                value={completionDate}
+                                onChange={(e) => setCompletionDate(e.target.value)}
+                                className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:border-blue-500"
+                              />
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={() => handleSaveCompletionDate(client.form!.id)}
+                                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs text-white rounded"
+                                  style={{ backgroundColor: '#e40033' }}
+                                  title="Salvar"
+                                >
+                                  <Check className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={handleCancelEditCompletionDate}
+                                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                                  title="Cancelar"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          ) : client.form.completion_date ? (
+                            <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1 text-xs text-gray-700">
+                                <Calendar className="w-3 h-3" style={{ color: '#e40033' }} />
+                                <span>{new Date(client.form.completion_date).toLocaleDateString('pt-BR')}</span>
+                              </div>
+                              <button
+                                onClick={() => handleEditCompletionDate(client.form!.id, client.form!.completion_date)}
+                                className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                title="Editar data"
+                              >
+                                <Edit2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleEditCompletionDate(client.form!.id)}
+                              className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                            >
+                              <Calendar className="w-3 h-3" />
+                              Definir
+                            </button>
+                          )
                         ) : (
                           <span className="text-xs text-gray-400">N/A</span>
                         )}

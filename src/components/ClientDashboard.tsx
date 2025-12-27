@@ -307,6 +307,22 @@ export default function ClientDashboard() {
     }
   };
 
+  const handleUpdateCompletionDate = async (date: string) => {
+    if (!form) return;
+
+    try {
+      await supabase
+        .from('app_forms')
+        .update({ completion_date: date })
+        .eq('id', form.id);
+
+      setForm({ ...form, completion_date: date });
+    } catch (error) {
+      console.error('Error updating completion date:', error);
+      throw error;
+    }
+  };
+
   const sections = [
     { id: 'setup', label: 'Setup Inicial', icon: '⚙️' },
     { id: 'store', label: 'Lojas', icon: '🏪' },
@@ -464,7 +480,9 @@ export default function ClientDashboard() {
                   reviewStatus={form.review_status}
                   reviewFeedback={form.review_feedback}
                   correctionsCompleted={form.corrections_completed}
+                  completionDate={form.completion_date}
                   onMarkCorrectionsComplete={handleMarkCorrectionsComplete}
+                  onUpdateCompletionDate={handleUpdateCompletionDate}
                 />
               )}
               {activeSection === 'setup' && (
