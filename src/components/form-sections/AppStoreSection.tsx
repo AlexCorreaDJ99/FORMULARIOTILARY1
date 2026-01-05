@@ -152,20 +152,16 @@ export default function AppStoreSection({ form, onSave }: Props) {
                 As screenshots aparecem na <strong>GALERIA DE PRÉVIA</strong> da página do seu app na App Store. São as imagens que os usuários veem ao rolar a página, mostrando as principais telas e funcionalidades do aplicativo.
               </p>
               <div className="bg-white/60 p-3 rounded-lg border border-purple-200">
-                <p className="font-medium mb-1">Por que dois tamanhos diferentes?</p>
+                <p className="font-medium mb-1">Tamanho de tela suportado:</p>
                 <div className="space-y-1">
                   <div className="flex items-start gap-2">
-                    <span className="font-bold">6.5" (1242x2688):</span>
-                    <span>Para iPhones com tela de 6.5 polegadas (iPhone 11 Pro Max, 12 Pro Max, 13 Pro Max, 14 Plus)</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="font-bold">6.9" (1320x2868):</span>
-                    <span>Para iPhones com tela de 6.9 polegadas (iPhone 15 Pro Max, 16 Plus, 16 Pro Max - modelos mais recentes)</span>
+                    <span className="font-bold">1242x2688 PX:</span>
+                    <span>Tamanho padrão aceito pela App Store para todos os modelos de iPhone modernos</span>
                   </div>
                 </div>
               </div>
               <p className="text-xs italic">
-                💡 A Apple exige screenshots para diferentes tamanhos de tela para garantir que as imagens fiquem perfeitas em todos os modelos de iPhone.
+                💡 A Apple exige screenshots no tamanho específico de 1242x2688 px para garantir que as imagens fiquem perfeitas em todos os modelos de iPhone.
               </p>
             </div>
           </div>
@@ -176,25 +172,11 @@ export default function AppStoreSection({ form, onSave }: Props) {
               <div className="space-y-4">
                 <ImageUpload
                   formId={form.id}
-                  label='Screenshots 1242x2688 PX - 6.5" (4-8 imagens, PNG)'
+                  label='Screenshots 1242x2688 PX (4-8 imagens, PNG)'
                   imageType="feature"
                   appType="driver"
                   storeType="appstore"
                   requiredDimensions={{ width: 1242, height: 2688 }}
-                  requiredFormat="png"
-                  multiple={true}
-                  minImages={4}
-                  maxImages={8}
-                  imageSource={form.image_source}
-                  onImageSourceChange={handleImageSourceChange}
-                />
-                <ImageUpload
-                  formId={form.id}
-                  label='Screenshots 1320x2868 PX - 6.9" (4-8 imagens, PNG)'
-                  imageType="feature"
-                  appType="driver"
-                  storeType="appstore"
-                  requiredDimensions={{ width: 1320, height: 2868 }}
                   requiredFormat="png"
                   multiple={true}
                   minImages={4}
@@ -210,25 +192,11 @@ export default function AppStoreSection({ form, onSave }: Props) {
               <div className="space-y-4">
                 <ImageUpload
                   formId={form.id}
-                  label='Screenshots 1242x2688 PX - 6.5" (4-8 imagens, PNG)'
+                  label='Screenshots 1242x2688 PX (4-8 imagens, PNG)'
                   imageType="feature"
                   appType="passenger"
                   storeType="appstore"
                   requiredDimensions={{ width: 1242, height: 2688 }}
-                  requiredFormat="png"
-                  multiple={true}
-                  minImages={4}
-                  maxImages={8}
-                  imageSource={form.image_source}
-                  onImageSourceChange={handleImageSourceChange}
-                />
-                <ImageUpload
-                  formId={form.id}
-                  label='Screenshots 1320x2868 PX - 6.9" (4-8 imagens, PNG)'
-                  imageType="feature"
-                  appType="passenger"
-                  storeType="appstore"
-                  requiredDimensions={{ width: 1320, height: 2868 }}
                   requiredFormat="png"
                   multiple={true}
                   minImages={4}
@@ -250,8 +218,8 @@ export default function AppStoreSection({ form, onSave }: Props) {
             <li>Screenshots devem focar APENAS nas funcionalidades</li>
             <li>NÃO use marketing ou promessas exageradas</li>
             <li>NÃO inclua logos de empresas externas</li>
-            <li>Use APENAS JPEG/JPG (sem PNG, sem fundo transparente)</li>
-            <li>Respeite EXATAMENTE as dimensões exigidas para cada tamanho de tela</li>
+            <li>Use APENAS PNG com 1242x2688 pixels</li>
+            <li>Respeite EXATAMENTE a dimensão exigida</li>
             <li>As imagens devem representar fielmente o app</li>
             <li>Evite textos excessivos nas screenshots</li>
           </ul>
