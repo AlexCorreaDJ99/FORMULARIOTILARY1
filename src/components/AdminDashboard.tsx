@@ -743,7 +743,10 @@ export default function AdminDashboard() {
                             <div className="flex flex-col gap-1">
                               <div className="flex items-center gap-1 text-xs text-gray-700">
                                 <Calendar className="w-3 h-3" style={{ color: '#e40033' }} />
-                                <span>{new Date(client.form.meeting_date!).toLocaleDateString('pt-BR')}</span>
+                                <span>{(() => {
+                                  const [year, month, day] = client.form.meeting_date!.split('-');
+                                  return new Date(parseInt(year), parseInt(month) - 1, parseInt(day)).toLocaleDateString('pt-BR');
+                                })()}</span>
                               </div>
                               <div className="text-xs text-gray-600">
                                 {client.form.meeting_time}
