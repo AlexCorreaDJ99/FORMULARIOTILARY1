@@ -122,7 +122,8 @@ export default function RecalculateProgressButton() {
         };
 
         if (progress === 100 && form.progress_percentage < 100 && !form.completion_date) {
-          updateData.completion_date = new Date().toISOString().split('T')[0];
+          const now = new Date();
+          updateData.completion_date = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
         }
 
         await supabase
