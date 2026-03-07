@@ -19,8 +19,10 @@ export default function ClientDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    loadClientData();
-  }, [user]);
+    if (user) {
+      loadClientData();
+    }
+  }, []);
 
   useEffect(() => {
     if (!form?.id) return;
