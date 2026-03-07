@@ -380,37 +380,76 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteClient = async (clientId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este cliente? O acesso ao formulário será bloqueado imediatamente.')) return;
+    const client = clients.find(c => c.id === clientId);
+
+    if (!client) {
+      alert('Cliente não encontrado.');
+      return;
+    }
+
+    if (!confirm(`Tem certeza que deseja excluir o cliente "${client.name}"?\n\nEsta ação marcará o cliente como excluído e ele não poderá mais acessar o sistema.`)) {
+      return;
+    }
 
     try {
-      const client = clients.find(c => c.id === clientId);
+      console.log('Iniciando exclusão do cliente:', clientId);
 
-      const { error } = await supabase
+      const { data, error: updateError } = await supabase
         .from('clients')
-        .update({ deleted: true })
-        .eq('id', clientId);
+        .update({
+          deleted: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', clientId)
+        .select();
 
-      if (error) throw error;
+      if (updateError) {
+        console.error('Erro RLS ou permissão ao excluir:', updateError);
+        throw updateError;
+      }
 
-      await logAdminAction(
-        'client_deleted',
-        `Excluiu o cliente: ${client?.name || 'Desconhecido'}`,
-        'client',
-        clientId,
-        client?.name,
-        { email: client?.email }
-      );
+      console.log('Cliente marcado como excluído:', data);
+
+      try {
+        await logAdminAction(
+          'client_deleted',
+          `Excluiu o cliente: ${client.name}`,
+          'client',
+          clientId,
+          client.name,
+          { email: client.email }
+        );
+      } catch (logError) {
+        console.error('Erro ao registrar log (não crítico):', logError);
+      }
 
       if (clients.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1);
       } else {
-        loadClients();
+        await loadClients();
       }
 
       alert('Cliente excluído com sucesso!');
-    } catch (error) {
-      console.error('Error deleting client:', error);
-      alert('Erro ao excluir cliente. Por favor, tente novamente.');
+    } catch (error: any) {
+      console.error('Erro ao excluir cliente:', {
+        error,
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code
+      });
+
+      let errorMessage = 'Erro ao excluir cliente.';
+
+      if (error?.message) {
+        errorMessage += `\n\nDetalhes: ${error.message}`;
+      }
+
+      if (error?.hint) {
+        errorMessage += `\n\nDica: ${error.hint}`;
+      }
+
+      alert(errorMessage);
     }
   };
 
