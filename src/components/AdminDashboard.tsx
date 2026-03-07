@@ -57,7 +57,8 @@ export default function AdminDashboard() {
     try {
       const { count } = await supabase
         .from('clients')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .eq('deleted', false);
 
       setTotalClients(count || 0);
 
@@ -67,6 +68,7 @@ export default function AdminDashboard() {
       const { data: clientsData, error: clientsError } = await supabase
         .from('clients')
         .select('*')
+        .eq('deleted', false)
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -303,75 +305,17 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteClient = async (clientId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este cliente? Todos os dados e arquivos relacionados serão removidos permanentemente.')) return;
+    if (!confirm('Tem certeza que deseja excluir este cliente? O acesso ao formulário será bloqueado imediatamente.')) return;
 
     try {
       const client = clients.find(c => c.id === clientId);
 
-      const { data: formData } = await supabase
-        .from('app_forms')
-        .select('id')
-        .eq('client_id', clientId)
-        .maybeSingle();
-
-      if (formData) {
-        const { data: images } = await supabase
-          .from('form_images')
-          .select('file_url')
-          .eq('form_id', formData.id);
-
-        if (images && images.length > 0) {
-          for (const image of images) {
-            const filePath = image.file_url.split('/').pop();
-            if (filePath) {
-              await supabase.storage
-                .from('app-images')
-                .remove([filePath]);
-            }
-          }
-        }
-
-        await supabase
-          .from('form_images')
-          .delete()
-          .eq('form_id', formData.id);
-
-        await supabase
-          .from('app_forms')
-          .delete()
-          .eq('id', formData.id);
-      }
-
-      const { data: clientData } = await supabase
+      const { error } = await supabase
         .from('clients')
-        .select('user_id')
-        .eq('id', clientId)
-        .single();
-
-      await supabase
-        .from('clients')
-        .delete()
+        .update({ deleted: true })
         .eq('id', clientId);
 
-      if (clientData?.user_id) {
-        await supabase
-          .from('profiles')
-          .delete()
-          .eq('id', clientData.user_id);
-
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`;
-          await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ userId: clientData.user_id }),
-          });
-        }
-      }
+      if (error) throw error;
 
       await logAdminAction(
         'client_deleted',
