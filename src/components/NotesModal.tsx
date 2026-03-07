@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Edit2 } from 'lucide-react';
+import { X, Save, CreditCard as Edit2 } from 'lucide-react';
 import { supabase, Client } from '../lib/supabase';
 
 type NotesModalProps = {
