@@ -5,10 +5,11 @@ import ImageUpload from '../ImageUpload';
 
 type Props = {
   form: AppForm;
+  clientId: string;
   onSave: (updates: Partial<AppForm>) => Promise<void>;
 };
 
-export default function AppStoreSection({ form, onSave }: Props) {
+export default function AppStoreSection({ form, clientId, onSave }: Props) {
   const [formData, setFormData] = useState({
     appstore_driver_description: form.appstore_driver_description || '',
     appstore_passenger_description: form.appstore_passenger_description || '',
@@ -172,6 +173,7 @@ export default function AppStoreSection({ form, onSave }: Props) {
               <div className="space-y-4">
                 <ImageUpload
                   formId={form.id}
+                  clientId={clientId}
                   label='Screenshots 1242x2688 PX (4-8 imagens, PNG)'
                   imageType="feature"
                   appType="driver"
@@ -192,6 +194,7 @@ export default function AppStoreSection({ form, onSave }: Props) {
               <div className="space-y-4">
                 <ImageUpload
                   formId={form.id}
+                  clientId={clientId}
                   label='Screenshots 1242x2688 PX (4-8 imagens, PNG)'
                   imageType="feature"
                   appType="passenger"

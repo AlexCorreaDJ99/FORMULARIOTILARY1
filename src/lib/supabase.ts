@@ -26,6 +26,13 @@ export type Client = {
   access_code: string;
   status: 'active' | 'inactive';
   admin_notes?: string;
+  ios_app_type?: string;
+  sales_person?: string;
+  plan?: string;
+  authorized_cities?: string;
+  notes?: string;
+  expectations?: string;
+  deleted: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -73,6 +80,7 @@ export type AppForm = {
 export type FormImage = {
   id: string;
   form_id: string;
+  client_id?: string;
   image_type: 'logo_1024' | 'logo_352' | 'feature' | 'banner_1024';
   app_type: 'driver' | 'passenger';
   store_type: 'playstore' | 'appstore' | 'both';

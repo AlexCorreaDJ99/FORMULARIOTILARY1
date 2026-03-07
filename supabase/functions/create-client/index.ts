@@ -10,6 +10,12 @@ const corsHeaders = {
 interface CreateClientRequest {
   name: string;
   email: string;
+  ios_app_type: string;
+  sales_person: string;
+  plan: string;
+  authorized_cities: string;
+  notes: string;
+  expectations: string;
 }
 
 Deno.serve(async (req: Request) => {
@@ -49,10 +55,10 @@ Deno.serve(async (req: Request) => {
       throw new Error("Unauthorized: Admin access required");
     }
 
-    const { name, email }: CreateClientRequest = await req.json();
+    const { name, email, ios_app_type, sales_person, plan, authorized_cities, notes, expectations }: CreateClientRequest = await req.json();
 
-    if (!name || !email) {
-      throw new Error("Name and email are required");
+    if (!name || !email || !ios_app_type || !sales_person || !plan || !authorized_cities || !notes || !expectations) {
+      throw new Error("All fields are required");
     }
 
     const generateAccessCode = () => {
@@ -108,6 +114,13 @@ Deno.serve(async (req: Request) => {
         access_code: accessCode,
         status: "active",
         created_by: user.id,
+        ios_app_type,
+        sales_person,
+        plan,
+        authorized_cities,
+        notes,
+        expectations,
+        deleted: false,
       })
       .select()
       .single();

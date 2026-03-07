@@ -4,10 +4,11 @@ import { Save } from 'lucide-react';
 
 type Props = {
   form: AppForm;
+  clientId: string;
   onSave: (updates: Partial<AppForm>) => Promise<void>;
 };
 
-export default function SetupSection({ form, onSave }: Props) {
+export default function SetupSection({ form, clientId, onSave }: Props) {
   const [formData, setFormData] = useState({
     driver_app_name: form.driver_app_name || '',
     passenger_app_name: form.passenger_app_name || '',

@@ -47,17 +47,57 @@ export default function NotesModal({ client, onClose, onSuccess }: NotesModalPro
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 space-y-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+            <h4 className="font-semibold text-blue-900">Informações Comerciais</h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium text-blue-800">Vendedor Responsável:</span>
+                <p className="text-blue-900 mt-1">{client.sales_person || 'Não informado'}</p>
+              </div>
+
+              <div>
+                <span className="font-medium text-blue-800">Plano Contratado:</span>
+                <p className="text-blue-900 mt-1">{client.plan || 'Não informado'}</p>
+              </div>
+
+              <div>
+                <span className="font-medium text-blue-800">Tipo de App iOS:</span>
+                <p className="text-blue-900 mt-1">
+                  {client.ios_app_type === 'P' && 'P - Passageiro'}
+                  {client.ios_app_type === 'P/M' && 'P/M - Passageiro e Motorista'}
+                  {!client.ios_app_type && 'Não informado'}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <span className="font-medium text-blue-800">Cidades Autorizadas:</span>
+              <p className="text-blue-900 mt-1 whitespace-pre-line">{client.authorized_cities || 'Não informado'}</p>
+            </div>
+
+            <div>
+              <span className="font-medium text-blue-800">Observações do Cadastro:</span>
+              <p className="text-blue-900 mt-1 whitespace-pre-line">{client.notes || 'Não informado'}</p>
+            </div>
+
+            <div>
+              <span className="font-medium text-blue-800">Expectativa:</span>
+              <p className="text-blue-900 mt-1 whitespace-pre-line">{client.expectations || 'Não informado'}</p>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Anotações Internas
+              Anotações Internas do Administrador
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              rows={12}
+              rows={8}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-              placeholder="Digite aqui suas observações, anotações e lembretes sobre este cliente..."
+              placeholder="Digite aqui anotações adicionais, acompanhamentos e lembretes sobre este cliente..."
             />
             <p className="text-xs text-gray-500 mt-2">
               Essas anotações são privadas e visíveis apenas para administradores.

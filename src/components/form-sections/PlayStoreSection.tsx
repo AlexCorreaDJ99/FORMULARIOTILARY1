@@ -5,10 +5,11 @@ import ImageUpload from '../ImageUpload';
 
 type Props = {
   form: AppForm;
+  clientId: string;
   onSave: (updates: Partial<AppForm>) => Promise<void>;
 };
 
-export default function PlayStoreSection({ form, onSave }: Props) {
+export default function PlayStoreSection({ form, clientId, onSave }: Props) {
   const [formData, setFormData] = useState({
     playstore_driver_short_description: form.playstore_driver_short_description || '',
     playstore_driver_long_description: form.playstore_driver_long_description || '',
@@ -210,6 +211,7 @@ export default function PlayStoreSection({ form, onSave }: Props) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <ImageUpload
                   formId={form.id}
+                  clientId={clientId}
                   label="Logo 1024x1024 PX (PNG)"
                   imageType="logo_1024"
                   appType="driver"
@@ -220,6 +222,7 @@ export default function PlayStoreSection({ form, onSave }: Props) {
                 />
                 <ImageUpload
                   formId={form.id}
+                  clientId={clientId}
                   label="Logo 352x68 PX (PNG)"
                   imageType="logo_352"
                   appType="driver"
@@ -236,6 +239,7 @@ export default function PlayStoreSection({ form, onSave }: Props) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <ImageUpload
                   formId={form.id}
+                  clientId={clientId}
                   label="Logo 1024x1024 PX (PNG)"
                   imageType="logo_1024"
                   appType="passenger"
@@ -246,6 +250,7 @@ export default function PlayStoreSection({ form, onSave }: Props) {
                 />
                 <ImageUpload
                   formId={form.id}
+                  clientId={clientId}
                   label="Logo 352x68 PX (PNG)"
                   imageType="logo_352"
                   appType="passenger"
@@ -281,6 +286,7 @@ export default function PlayStoreSection({ form, onSave }: Props) {
               <h4 className="font-medium text-gray-900 mb-3">App Motorista</h4>
               <ImageUpload
                 formId={form.id}
+                clientId={clientId}
                 label="Screenshots 1243x2486 PX (4-8 imagens, PNG)"
                 imageType="feature"
                 appType="driver"
@@ -295,6 +301,7 @@ export default function PlayStoreSection({ form, onSave }: Props) {
               />
               <ImageUpload
                 formId={form.id}
+                clientId={clientId}
                 label="Banner 1024x500 PX (PNG)"
                 imageType="banner_1024"
                 appType="driver"
@@ -310,6 +317,7 @@ export default function PlayStoreSection({ form, onSave }: Props) {
               <h4 className="font-medium text-gray-900 mb-3">App Passageiro</h4>
               <ImageUpload
                 formId={form.id}
+                clientId={clientId}
                 label="Screenshots 1243x2486 PX (4-8 imagens, PNG)"
                 imageType="feature"
                 appType="passenger"
@@ -324,6 +332,7 @@ export default function PlayStoreSection({ form, onSave }: Props) {
               />
               <ImageUpload
                 formId={form.id}
+                clientId={clientId}
                 label="Banner 1024x500 PX (PNG)"
                 imageType="banner_1024"
                 appType="passenger"

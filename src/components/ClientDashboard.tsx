@@ -51,6 +51,33 @@ export default function ClientDashboard() {
         .maybeSingle();
 
       if (clientError) throw clientError;
+
+      if (!clientData) {
+        console.error('Client data not found for user');
+        localStorage.clear();
+        sessionStorage.clear();
+        await supabase.auth.signOut();
+        return;
+      }
+
+      if (clientData.deleted) {
+        console.error('Client has been deleted');
+        localStorage.clear();
+        sessionStorage.clear();
+        await supabase.auth.signOut();
+        alert('Este formulário não está mais disponível.');
+        return;
+      }
+
+      if (clientData.status !== 'active') {
+        console.error('Client is not active');
+        localStorage.clear();
+        sessionStorage.clear();
+        await supabase.auth.signOut();
+        alert('Sua conta está inativa. Entre em contato com o suporte.');
+        return;
+      }
+
       setClient(clientData);
 
       if (clientData) {
@@ -72,6 +99,9 @@ export default function ClientDashboard() {
       }
     } catch (error) {
       console.error('Error loading data:', error);
+      localStorage.clear();
+      sessionStorage.clear();
+      await supabase.auth.signOut();
     } finally {
       setLoading(false);
     }
@@ -480,16 +510,16 @@ export default function ClientDashboard() {
                 />
               )}
               {activeSection === 'setup' && (
-                <SetupSection form={form} onSave={handleSaveForm} />
+                <SetupSection form={form} clientId={client.id} onSave={handleSaveForm} />
               )}
               {activeSection === 'store' && (
                 <StoreOwnerSection form={form} onSave={handleSaveForm} />
               )}
               {activeSection === 'playstore' && (
-                <PlayStoreSection form={form} onSave={handleSaveForm} />
+                <PlayStoreSection form={form} clientId={client.id} onSave={handleSaveForm} />
               )}
               {activeSection === 'appstore' && (
-                <AppStoreSection form={form} onSave={handleSaveForm} />
+                <AppStoreSection form={form} clientId={client.id} onSave={handleSaveForm} />
               )}
               {activeSection === 'terms' && (
                 <TermsSection form={form} onSave={handleSaveForm} />

@@ -4,6 +4,7 @@ import { Upload, X, CheckCircle, AlertCircle, Image as ImageIcon, Info } from 'l
 
 type Props = {
   formId: string;
+  clientId: string;
   label: string;
   imageType: 'logo_1024' | 'logo_352' | 'feature' | 'banner_1024';
   appType: 'driver' | 'passenger';
@@ -20,6 +21,7 @@ type Props = {
 
 export default function ImageUpload({
   formId,
+  clientId,
   label,
   imageType,
   appType,
@@ -189,6 +191,7 @@ export default function ImageUpload({
 
         const { error: dbError } = await supabase.from('form_images').insert({
           form_id: formId,
+          client_id: clientId,
           image_type: imageType,
           app_type: appType,
           store_type: storeType,

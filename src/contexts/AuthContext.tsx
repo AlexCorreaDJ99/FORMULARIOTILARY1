@@ -73,14 +73,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithCode = async (email: string, accessCode: string) => {
     const { data: client, error: clientError } = await supabase
       .from('clients')
-      .select('user_id, status')
+      .select('user_id, status, deleted')
       .eq('email', email)
       .eq('access_code', accessCode)
-      .eq('status', 'active')
       .maybeSingle();
 
     if (clientError || !client) {
-      throw new Error('Código de acesso inválido ou cliente inativo');
+      throw new Error('Código de acesso inválido');
+    }
+
+    if (client.deleted) {
+      throw new Error('Este formulário não está mais disponível');
+    }
+
+    if (client.status !== 'active') {
+      throw new Error('Cliente inativo. Entre em contato com o suporte');
     }
 
     const { data: profileData, error: profileError } = await supabase
