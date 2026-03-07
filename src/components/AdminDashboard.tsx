@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase, Client, AppForm, ActivityLog, logAdminAction } from '../lib/supabase';
-import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check, CheckCircle, FileText, Mail, ChevronLeft, ChevronRight, ClipboardList, CreditCard as Edit2 } from 'lucide-react';
+import { supabase, Client, AppForm, ActivityLog, ClientNotification, logAdminAction } from '../lib/supabase';
+import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check, CheckCircle, FileText, Mail, ChevronLeft, ChevronRight, ClipboardList, CreditCard as Edit2, Bell } from 'lucide-react';
 import CreateClientModal from './CreateClientModal';
 import CreateAdminModal from './CreateAdminModal';
 import EditAdminPasswordModal from './EditAdminPasswordModal';
@@ -24,7 +24,7 @@ type AdminProfile = {
 
 export default function AdminDashboard() {
   const { signOut, profile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'clients' | 'admins' | 'logs'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'admins' | 'logs' | 'notifications'>('clients');
   const [clients, setClients] = useState<ClientWithForm[]>([]);
   const [admins, setAdmins] = useState<AdminProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,8 +45,14 @@ export default function AdminDashboard() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [logsPage, setLogsPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
+  const [notifications, setNotifications] = useState<ClientNotification[]>([]);
+  const [notificationsPage, setNotificationsPage] = useState(1);
+  const [totalNotifications, setTotalNotifications] = useState(0);
+  const [filterNotificationType, setFilterNotificationType] = useState<string>('all');
+  const [filterNotificationRead, setFilterNotificationRead] = useState<string>('all');
   const itemsPerPage = 40;
   const logsPerPage = 50;
+  const notificationsPerPage = 50;
 
   useEffect(() => {
     loadClients();
@@ -139,8 +145,77 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (activeTab === 'logs') {
       loadLogs();
+    } else if (activeTab === 'notifications') {
+      loadNotifications();
     }
-  }, [activeTab, logsPage]);
+  }, [activeTab, logsPage, notificationsPage, filterNotificationType, filterNotificationRead]);
+
+  const loadNotifications = async () => {
+    try {
+      let query = supabase
+        .from('client_notifications')
+        .select('*, clients!inner(name)', { count: 'exact' });
+
+      if (filterNotificationType !== 'all') {
+        query = query.eq('notification_type', filterNotificationType);
+      }
+
+      if (filterNotificationRead === 'read') {
+        query = query.eq('is_read', true);
+      } else if (filterNotificationRead === 'unread') {
+        query = query.eq('is_read', false);
+      }
+
+      const { count } = await query;
+      setTotalNotifications(count || 0);
+
+      const from = (notificationsPage - 1) * notificationsPerPage;
+      const to = from + notificationsPerPage - 1;
+
+      const { data, error } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+
+      const notificationsWithClientName = (data || []).map((notif: any) => ({
+        ...notif,
+        client_name: notif.clients?.name || 'Cliente desconhecido'
+      }));
+
+      setNotifications(notificationsWithClientName);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    }
+  };
+
+  const handleMarkNotificationAsRead = async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('client_notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+      loadNotifications();
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const handleMarkAllNotificationsAsRead = async () => {
+    try {
+      const { error } = await supabase
+        .from('client_notifications')
+        .update({ is_read: true })
+        .eq('is_read', false);
+
+      if (error) throw error;
+      loadNotifications();
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
 
   const handleToggleStatus = async (clientId: string, currentStatus: string) => {
     try {
@@ -445,6 +520,17 @@ export default function AdminDashboard() {
           >
             <ClipboardList className="w-5 h-5" />
             <span className="text-sm sm:text-base">Log de Alterações</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('notifications')}
+            className={`flex items-center gap-2 px-3 sm:px-4 py-3 font-medium transition-all border-b-2 whitespace-nowrap ${
+              activeTab === 'notifications'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Bell className="w-5 h-5" />
+            <span className="text-sm sm:text-base">Notificações</span>
           </button>
         </div>
 
@@ -1037,6 +1123,203 @@ export default function AdminDashboard() {
                     style={{
                       color: logsPage >= Math.ceil(totalLogs / logsPerPage) ? '#9ca3af' : '#e40033',
                       borderColor: logsPage >= Math.ceil(totalLogs / logsPerPage) ? '#d1d5db' : '#e40033'
+                    }}
+                  >
+                    <span className="hidden sm:inline">Próxima</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {activeTab === 'notifications' && (
+          <>
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Notificações de Atividade</h2>
+                <p className="text-sm sm:text-base text-gray-600 mt-1">Acompanhe a atividade dos clientes no formulário</p>
+              </div>
+              <button
+                onClick={handleMarkAllNotificationsAsRead}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-white rounded-lg transition-colors"
+                style={{ backgroundColor: '#e40033' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c2002a'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e40033'}
+              >
+                <CheckCircle className="w-4 h-4" />
+                Marcar Todas como Lidas
+              </button>
+            </div>
+
+            <div className="mb-6 flex flex-wrap gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                <select
+                  value={filterNotificationType}
+                  onChange={(e) => {
+                    setFilterNotificationType(e.target.value);
+                    setNotificationsPage(1);
+                  }}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">Todos</option>
+                  <option value="first_access">Primeiro Acesso</option>
+                  <option value="form_submitted">Formulário Enviado</option>
+                  <option value="form_updated">Formulário Atualizado</option>
+                  <option value="form_completed">Formulário Completo</option>
+                  <option value="inactive_2_days">Inativo 2 Dias</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select
+                  value={filterNotificationRead}
+                  onChange={(e) => {
+                    setFilterNotificationRead(e.target.value);
+                    setNotificationsPage(1);
+                  }}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">Todos</option>
+                  <option value="unread">Não Lidas</option>
+                  <option value="read">Lidas</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Data/Hora
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Cliente
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Tipo
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Mensagem
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {notifications.map((notification: any) => (
+                    <tr key={notification.id} className={notification.is_read ? 'bg-white' : 'bg-blue-50'}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {notification.is_read ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            Lida
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Nova
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(notification.created_at).toLocaleString('pt-BR')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{notification.client_name}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {notification.notification_type === 'first_access' && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Primeiro Acesso
+                          </span>
+                        )}
+                        {notification.notification_type === 'form_submitted' && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Formulário Enviado
+                          </span>
+                        )}
+                        {notification.notification_type === 'form_updated' && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            Atualizado
+                          </span>
+                        )}
+                        {notification.notification_type === 'form_completed' && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Completo
+                          </span>
+                        )}
+                        {notification.notification_type === 'inactive_2_days' && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Inativo 2 Dias
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900">{notification.message}</div>
+                        {notification.metadata && notification.metadata.progress !== undefined && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Progresso: {notification.metadata.progress}%
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {!notification.is_read && (
+                          <button
+                            onClick={() => handleMarkNotificationAsRead(notification.id)}
+                            className="text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            Marcar como Lida
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {notifications.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                        Nenhuma notificação encontrada
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {totalNotifications > notificationsPerPage && (
+              <div className="mt-6 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Mostrando {((notificationsPage - 1) * notificationsPerPage) + 1} a {Math.min(notificationsPage * notificationsPerPage, totalNotifications)} de {totalNotifications} notificações
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setNotificationsPage(p => Math.max(1, p - 1))}
+                    disabled={notificationsPage === 1}
+                    className="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      color: notificationsPage === 1 ? '#9ca3af' : '#e40033',
+                      borderColor: notificationsPage === 1 ? '#d1d5db' : '#e40033'
+                    }}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span className="hidden sm:inline">Anterior</span>
+                  </button>
+                  <span className="px-4 py-2 text-sm text-gray-700">
+                    Página {notificationsPage} de {Math.ceil(totalNotifications / notificationsPerPage)}
+                  </span>
+                  <button
+                    onClick={() => setNotificationsPage(p => Math.min(Math.ceil(totalNotifications / notificationsPerPage), p + 1))}
+                    disabled={notificationsPage >= Math.ceil(totalNotifications / notificationsPerPage)}
+                    className="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      color: notificationsPage >= Math.ceil(totalNotifications / notificationsPerPage) ? '#9ca3af' : '#e40033',
+                      borderColor: notificationsPage >= Math.ceil(totalNotifications / notificationsPerPage) ? '#d1d5db' : '#e40033'
                     }}
                   >
                     <span className="hidden sm:inline">Próxima</span>

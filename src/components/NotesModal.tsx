@@ -10,6 +10,7 @@ type NotesModalProps = {
 
 export default function NotesModal({ client, onClose, onSuccess }: NotesModalProps) {
   const [notes, setNotes] = useState(client.admin_notes || '');
+  const [cezarResponsibility, setCezarResponsibility] = useState<'sim' | 'nao' | null>(client.cezar_images_responsibility || null);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -17,7 +18,10 @@ export default function NotesModal({ client, onClose, onSuccess }: NotesModalPro
     try {
       const { error } = await supabase
         .from('clients')
-        .update({ admin_notes: notes })
+        .update({
+          admin_notes: notes,
+          cezar_images_responsibility: cezarResponsibility
+        })
         .eq('id', client.id);
 
       if (error) throw error;
@@ -86,6 +90,50 @@ export default function NotesModal({ client, onClose, onSuccess }: NotesModalPro
               <span className="font-medium text-blue-800">Expectativa:</span>
               <p className="text-blue-900 mt-1 whitespace-pre-line">{client.expectations || 'Não informado'}</p>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Cezar será responsável pelas imagens?
+            </label>
+            <div className="flex gap-4 mb-6">
+              <button
+                type="button"
+                onClick={() => setCezarResponsibility('sim')}
+                className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                  cezarResponsibility === 'sim'
+                    ? 'border-green-500 bg-green-50 text-green-700 font-semibold'
+                    : 'border-gray-300 bg-white text-gray-700 hover:border-green-300'
+                }`}
+              >
+                Sim
+              </button>
+              <button
+                type="button"
+                onClick={() => setCezarResponsibility('nao')}
+                className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                  cezarResponsibility === 'nao'
+                    ? 'border-red-500 bg-red-50 text-red-700 font-semibold'
+                    : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'
+                }`}
+              >
+                Não
+              </button>
+              <button
+                type="button"
+                onClick={() => setCezarResponsibility(null)}
+                className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                  cezarResponsibility === null
+                    ? 'border-gray-500 bg-gray-50 text-gray-700 font-semibold'
+                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                }`}
+              >
+                Não Definido
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mb-6">
+              Esta informação define se o Cezar será responsável pela criação das imagens do cliente.
+            </p>
           </div>
 
           <div>

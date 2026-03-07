@@ -93,9 +93,22 @@ export default function ClientDashboard() {
         setForm(formData);
 
         if (formData) {
+          const updates: any = { last_activity_date: new Date().toISOString() };
+
+          if (!formData.first_access_at) {
+            updates.first_access_at = new Date().toISOString();
+
+            await supabase.rpc('create_client_notification', {
+              p_client_id: clientData.id,
+              p_notification_type: 'first_access',
+              p_message: `Cliente ${clientData.name} acessou o formulário pela primeira vez`,
+              p_metadata: { form_id: formData.id }
+            });
+          }
+
           await supabase
             .from('app_forms')
-            .update({ last_activity_date: new Date().toISOString() })
+            .update(updates)
             .eq('id', formData.id);
         }
       }

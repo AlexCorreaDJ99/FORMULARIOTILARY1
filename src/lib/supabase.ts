@@ -26,6 +26,7 @@ export type Client = {
   access_code: string;
   status: 'active' | 'inactive';
   admin_notes?: string;
+  cezar_images_responsibility?: 'sim' | 'nao' | null;
   ios_app_type?: string;
   sales_person?: string;
   plan?: string;
@@ -61,6 +62,9 @@ export type AppForm = {
   admin_notified_of_changes?: boolean;
   last_activity_date?: string;
   last_client_update?: string;
+  first_access_at?: string;
+  last_modified_at?: string;
+  last_modified_by?: string;
   driver_app_name?: string;
   passenger_app_name?: string;
   support_email?: string;
@@ -97,6 +101,16 @@ export type Notification = {
   type: 'form_completed' | 'inactive_warning' | 'form_updated';
   message: string;
   read: boolean;
+  created_at: string;
+};
+
+export type ClientNotification = {
+  id: string;
+  client_id: string;
+  notification_type: 'first_access' | 'form_submitted' | 'form_updated' | 'form_completed' | 'inactive_2_days' | 'inactive_warning';
+  message: string;
+  is_read: boolean;
+  metadata: Record<string, any>;
   created_at: string;
 };
 

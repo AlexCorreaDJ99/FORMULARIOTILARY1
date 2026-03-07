@@ -34,10 +34,10 @@ Deno.serve(async (req: Request) => {
 
     for (const form of inactiveForms || []) {
       const { data: existingNotifications } = await supabase
-        .from('notifications')
+        .from('client_notifications')
         .select('id, created_at')
         .eq('client_id', form.client_id)
-        .eq('type', 'inactive_warning')
+        .eq('notification_type', 'inactive_2_days')
         .gte('created_at', twoDaysAgo.toISOString());
 
       if (!existingNotifications || existingNotifications.length === 0) {
@@ -49,11 +49,16 @@ Deno.serve(async (req: Request) => {
 
         if (client) {
           const { error: notificationError } = await supabase
-            .from('notifications')
+            .from('client_notifications')
             .insert({
               client_id: form.client_id,
-              type: 'inactive_warning',
-              message: `${client.name} está inativo há mais de 2 dias (${form.progress_percentage}% completo)`,
+              notification_type: 'inactive_2_days',
+              message: `Cliente ${client.name} não acessa o formulário há 2 dias (${form.progress_percentage}% completo)`,
+              metadata: {
+                form_id: form.id,
+                progress: form.progress_percentage,
+                last_activity: form.last_activity_date
+              }
             });
 
           if (!notificationError) {
