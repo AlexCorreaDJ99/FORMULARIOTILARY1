@@ -61,8 +61,8 @@ export default function NotesModal({ client, onClose, onSuccess }: NotesModalPro
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full">
-        <div className="flex justify-between items-center px-6 py-4 border-b">
+      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+        <div className="flex justify-between items-center px-6 py-4 border-b flex-shrink-0">
           <div>
             <h3 className="text-xl font-bold text-gray-900">Observações e Anotações</h3>
             <p className="text-sm text-gray-600 mt-1">Cliente: {client.name}</p>
@@ -75,7 +75,7 @@ export default function NotesModal({ client, onClose, onSuccess }: NotesModalPro
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
             <div className="flex justify-between items-center">
               <h4 className="font-semibold text-blue-900">Informações Comerciais</h4>
@@ -296,7 +296,7 @@ export default function NotesModal({ client, onClose, onSuccess }: NotesModalPro
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 rounded-b-xl">
+        <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 rounded-b-xl flex-shrink-0">
           <button
             onClick={onClose}
             className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
