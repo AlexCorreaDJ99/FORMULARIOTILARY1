@@ -50,6 +50,9 @@ export default function AdminDashboard() {
   const [totalNotifications, setTotalNotifications] = useState(0);
   const [filterNotificationType, setFilterNotificationType] = useState<string>('all');
   const [filterNotificationRead, setFilterNotificationRead] = useState<string>('all');
+  const [filterFormStatus, setFilterFormStatus] = useState<string>('all');
+  const [filterProjectStatus, setFilterProjectStatus] = useState<string>('all');
+  const [sortByCompletionDate, setSortByCompletionDate] = useState<string>('none');
   const itemsPerPage = 40;
   const logsPerPage = 50;
   const notificationsPerPage = 50;
@@ -57,17 +60,10 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadClients();
     loadAdmins();
-  }, [currentPage]);
+  }, [currentPage, filterFormStatus, filterProjectStatus, sortByCompletionDate]);
 
   const loadClients = async () => {
     try {
-      const { count } = await supabase
-        .from('clients')
-        .select('*', { count: 'exact', head: true })
-        .eq('deleted', false);
-
-      setTotalClients(count || 0);
-
       const from = (currentPage - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
 
@@ -75,12 +71,11 @@ export default function AdminDashboard() {
         .from('clients')
         .select('*')
         .eq('deleted', false)
-        .order('created_at', { ascending: false })
-        .range(from, to);
+        .order('created_at', { ascending: false });
 
       if (clientsError) throw clientsError;
 
-      const clientsWithForms = await Promise.all(
+      let clientsWithForms = await Promise.all(
         (clientsData || []).map(async (client) => {
           const { data: formData } = await supabase
             .from('app_forms')
@@ -95,7 +90,56 @@ export default function AdminDashboard() {
         })
       );
 
-      setClients(clientsWithForms);
+      let filteredClients = clientsWithForms;
+
+      if (filterFormStatus !== 'all') {
+        if (filterFormStatus === 'not_started') {
+          filteredClients = filteredClients.filter(c => !c.form || c.form.status === 'not_started');
+        } else if (filterFormStatus === 'incomplete') {
+          filteredClients = filteredClients.filter(c => !c.form || c.form.status !== 'completed');
+        } else {
+          filteredClients = filteredClients.filter(c => c.form?.status === filterFormStatus);
+        }
+      }
+
+      if (filterProjectStatus !== 'all') {
+        filteredClients = filteredClients.filter(c => c.form?.project_status === filterProjectStatus);
+      }
+
+      if (sortByCompletionDate === 'oldest') {
+        filteredClients.sort((a, b) => {
+          const dateA = a.form?.completion_date;
+          const dateB = b.form?.completion_date;
+
+          if (!dateA && !dateB) return 0;
+          if (!dateA) return 1;
+          if (!dateB) return -1;
+
+          return new Date(dateA).getTime() - new Date(dateB).getTime();
+        });
+      } else if (sortByCompletionDate === 'newest') {
+        filteredClients.sort((a, b) => {
+          const dateA = a.form?.completion_date;
+          const dateB = b.form?.completion_date;
+
+          if (!dateA && !dateB) return 0;
+          if (!dateA) return 1;
+          if (!dateB) return -1;
+
+          return new Date(dateB).getTime() - new Date(dateA).getTime();
+        });
+      } else if (sortByCompletionDate === 'no_date') {
+        filteredClients.sort((a, b) => {
+          const hasDateA = !!a.form?.completion_date;
+          const hasDateB = !!b.form?.completion_date;
+
+          if (hasDateA === hasDateB) return 0;
+          return hasDateA ? 1 : -1;
+        });
+      }
+
+      setTotalClients(filteredClients.length);
+      setClients(filteredClients.slice(from, to + 1));
     } catch (error) {
       console.error('Error loading clients:', error);
     } finally {
@@ -593,6 +637,80 @@ export default function AdminDashboard() {
                   Novo Cliente
                 </button>
               </div>
+            </div>
+
+            <div className="mb-6 bg-white rounded-xl shadow-sm p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Filtros e Ordenação</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Status Formulário</label>
+                  <select
+                    value={filterFormStatus}
+                    onChange={(e) => {
+                      setFilterFormStatus(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="not_started">Não Iniciado</option>
+                    <option value="incomplete">Incompletos</option>
+                    <option value="in_progress">Em Andamento</option>
+                    <option value="completed">Concluído</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Status Projeto</label>
+                  <select
+                    value={filterProjectStatus}
+                    onChange={(e) => {
+                      setFilterProjectStatus(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="pending">Pendente</option>
+                    <option value="development">Desenvolvimento</option>
+                    <option value="panel_delivered">Painel Entregue</option>
+                    <option value="testing_submission">Testes e Envio</option>
+                    <option value="under_review">Em Análise</option>
+                    <option value="completed">Concluído</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Ordenar por Data de Conclusão</label>
+                  <select
+                    value={sortByCompletionDate}
+                    onChange={(e) => {
+                      setSortByCompletionDate(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="none">Padrão (Mais Recentes)</option>
+                    <option value="oldest">Data Mais Antiga (Prazo mais curto)</option>
+                    <option value="newest">Data Mais Nova</option>
+                    <option value="no_date">Sem Data Definida</option>
+                  </select>
+                </div>
+              </div>
+
+              {(filterFormStatus !== 'all' || filterProjectStatus !== 'all' || sortByCompletionDate !== 'none') && (
+                <button
+                  onClick={() => {
+                    setFilterFormStatus('all');
+                    setFilterProjectStatus('all');
+                    setSortByCompletionDate('none');
+                    setCurrentPage(1);
+                  }}
+                  className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Limpar Filtros
+                </button>
+              )}
             </div>
 
             <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
