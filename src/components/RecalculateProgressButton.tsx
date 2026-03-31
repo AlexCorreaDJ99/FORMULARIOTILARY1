@@ -123,9 +123,11 @@ export default function RecalculateProgressButton() {
           images_uploaded: allImagesUploaded,
         };
 
-        if (progress === 100 && form.progress_percentage < 100 && !form.completion_date) {
+        if (progress === 100) {
           const now = new Date();
           updateData.completion_date = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+        } else if (progress < 100 && form.completion_date) {
+          updateData.completion_date = null;
         }
 
         await supabase

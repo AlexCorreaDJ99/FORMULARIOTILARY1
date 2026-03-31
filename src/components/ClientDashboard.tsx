@@ -278,9 +278,11 @@ export default function ClientDashboard() {
         status,
       };
 
-      if (progress === 100 && oldProgress < 100 && !updatedForm.completion_date) {
+      if (progress === 100) {
         const now = new Date();
         updateData.completion_date = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      } else if (progress < 100 && updatedForm.completion_date) {
+        updateData.completion_date = null;
       }
 
       const { error } = await supabase
