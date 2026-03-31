@@ -1674,6 +1674,24 @@ function ClientDetailsModal({ client, onClose }: { client: ClientWithForm; onClo
             <div className="space-y-4">
               <h4 className="font-bold text-gray-900 border-b pb-2">Dados do Formulário</h4>
 
+              {client.form.admin_notes && (() => {
+                const logMatch = client.form.admin_notes.match(/\n-{3,}\n\[LOG AUTOMÁTICO\]([\s\S]+)$/);
+                if (logMatch) {
+                  return (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <label className="text-sm font-bold text-amber-900 block mb-3 flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        Histórico de Modificações
+                      </label>
+                      <div className="text-sm text-amber-900 whitespace-pre-line font-mono">
+                        {logMatch[1].trim()}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               {(client.form.play_store_owner || client.form.app_store_owner) && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <label className="text-sm font-medium text-blue-900 block mb-2">
