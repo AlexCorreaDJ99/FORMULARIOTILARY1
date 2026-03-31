@@ -18,6 +18,8 @@ export default function RecalculateProgressButton() {
       'appstore_passenger_description',
       'driver_terms',
       'passenger_terms',
+      'play_store_owner',
+      'app_store_owner',
     ];
 
     let filled = fields.filter((field) => {
