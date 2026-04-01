@@ -27,39 +27,48 @@ export default function RecalculateProgressButton() {
       return value && String(value).trim().length > 0;
     }).length;
 
+    const mandatoryLogos = {
+      driver_playstore_logo_1024: false,
+      driver_playstore_logo_352: false,
+      passenger_playstore_logo_1024: false,
+      passenger_playstore_logo_352: false,
+    };
+
+    const optionalImages = {
+      driver_playstore_feature: false,
+      driver_appstore_feature: false,
+      passenger_playstore_feature: false,
+      passenger_appstore_feature: false,
+    };
+
+    if (images && images.length > 0) {
+      images.forEach((img) => {
+        const key = `${img.app_type}_${img.store_type}_${img.image_type}`;
+        if (key in mandatoryLogos) {
+          mandatoryLogos[key as keyof typeof mandatoryLogos] = true;
+        }
+        if (key in optionalImages) {
+          optionalImages[key as keyof typeof optionalImages] = true;
+        }
+      });
+    }
+
+    const logosFilled = Object.values(mandatoryLogos).filter(Boolean).length;
+    filled += logosFilled;
+
     if (formData.image_source === 'tilary') {
       if (formData.images_uploaded) {
         filled += 1;
       }
     } else if (formData.image_source === 'custom') {
-      const requiredImages = {
-        driver_playstore_logo_1024: false,
-        driver_playstore_logo_352: false,
-        passenger_playstore_logo_1024: false,
-        passenger_playstore_logo_352: false,
-        driver_playstore_feature: false,
-        driver_appstore_feature: false,
-        passenger_playstore_feature: false,
-        passenger_appstore_feature: false,
-      };
+      const allOptionalImagesUploaded = Object.values(optionalImages).every((uploaded) => uploaded);
 
-      if (images && images.length > 0) {
-        images.forEach((img) => {
-          const key = `${img.app_type}_${img.store_type}_${img.image_type}`;
-          if (key in requiredImages) {
-            requiredImages[key as keyof typeof requiredImages] = true;
-          }
-        });
-      }
-
-      const allImagesUploaded = Object.values(requiredImages).every((uploaded) => uploaded);
-
-      if (allImagesUploaded) {
+      if (allOptionalImagesUploaded) {
         filled += 1;
       }
     }
 
-    const total = fields.length + 1;
+    const total = fields.length + 5;
     return Math.round((filled / total) * 100);
   };
 
@@ -97,11 +106,7 @@ export default function RecalculateProgressButton() {
           status = 'in_progress';
         }
 
-        const requiredImages = {
-          driver_playstore_logo_1024: false,
-          driver_playstore_logo_352: false,
-          passenger_playstore_logo_1024: false,
-          passenger_playstore_logo_352: false,
+        const optionalImages = {
           driver_playstore_feature: false,
           driver_appstore_feature: false,
           passenger_playstore_feature: false,
@@ -111,18 +116,18 @@ export default function RecalculateProgressButton() {
         if (images && images.length > 0) {
           images.forEach((img: any) => {
             const key = `${img.app_type}_${img.store_type}_${img.image_type}`;
-            if (key in requiredImages) {
-              requiredImages[key as keyof typeof requiredImages] = true;
+            if (key in optionalImages) {
+              optionalImages[key as keyof typeof optionalImages] = true;
             }
           });
         }
 
-        const allImagesUploaded = Object.values(requiredImages).every((uploaded) => uploaded);
+        const allOptionalImagesUploaded = Object.values(optionalImages).every((uploaded) => uploaded);
 
         const updateData: any = {
           progress_percentage: progress,
           status,
-          images_uploaded: allImagesUploaded,
+          images_uploaded: allOptionalImagesUploaded,
         };
 
         if (progress === 100) {

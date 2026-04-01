@@ -144,43 +144,52 @@ export default function ClientDashboard() {
       return value && String(value).trim().length > 0;
     }).length;
 
+    if (!formData.id) {
+      return Math.round((filled / (fields.length + 5)) * 100);
+    }
+
+    const { data: images } = await supabase
+      .from('form_images')
+      .select('image_type, app_type, store_type')
+      .eq('form_id', formData.id);
+
+    const mandatoryLogos = {
+      driver_playstore_logo_1024: false,
+      driver_playstore_logo_352: false,
+      passenger_playstore_logo_1024: false,
+      passenger_playstore_logo_352: false,
+    };
+
+    const optionalImages = {
+      driver_playstore_feature: false,
+      driver_appstore_feature: false,
+      passenger_playstore_feature: false,
+      passenger_appstore_feature: false,
+    };
+
+    if (images && images.length > 0) {
+      images.forEach((img) => {
+        const key = `${img.app_type}_${img.store_type}_${img.image_type}`;
+        if (key in mandatoryLogos) {
+          mandatoryLogos[key as keyof typeof mandatoryLogos] = true;
+        }
+        if (key in optionalImages) {
+          optionalImages[key as keyof typeof optionalImages] = true;
+        }
+      });
+    }
+
+    const logosFilled = Object.values(mandatoryLogos).filter(Boolean).length;
+    filled += logosFilled;
+
     if (formData.image_source === 'tilary') {
       if (formData.images_uploaded) {
         filled += 1;
       }
     } else if (formData.image_source === 'custom') {
-      if (!formData.id) {
-        return Math.round((filled / (fields.length + 1)) * 100);
-      }
+      const allOptionalImagesUploaded = Object.values(optionalImages).every((uploaded) => uploaded);
 
-      const { data: images } = await supabase
-        .from('form_images')
-        .select('image_type, app_type, store_type')
-        .eq('form_id', formData.id);
-
-      const requiredImages = {
-        driver_playstore_logo_1024: false,
-        driver_playstore_logo_352: false,
-        passenger_playstore_logo_1024: false,
-        passenger_playstore_logo_352: false,
-        driver_playstore_feature: false,
-        driver_appstore_feature: false,
-        passenger_playstore_feature: false,
-        passenger_appstore_feature: false,
-      };
-
-      if (images && images.length > 0) {
-        images.forEach((img) => {
-          const key = `${img.app_type}_${img.store_type}_${img.image_type}`;
-          if (key in requiredImages) {
-            requiredImages[key as keyof typeof requiredImages] = true;
-          }
-        });
-      }
-
-      const allImagesUploaded = Object.values(requiredImages).every((uploaded) => uploaded);
-
-      if (allImagesUploaded) {
+      if (allOptionalImagesUploaded) {
         filled += 1;
 
         if (!formData.images_uploaded) {
@@ -199,7 +208,7 @@ export default function ClientDashboard() {
       }
     }
 
-    const total = fields.length + 1;
+    const total = fields.length + 5;
     return Math.round((filled / total) * 100);
   };
 

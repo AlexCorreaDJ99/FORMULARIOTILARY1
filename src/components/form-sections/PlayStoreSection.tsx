@@ -170,8 +170,21 @@ export default function PlayStoreSection({ form, clientId, onSave }: Props) {
         <div className="border-t pt-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Upload className="w-5 h-5" />
-            Logos dos Aplicativos
+            Logos dos Aplicativos (OBRIGATÓRIAS) *
           </h3>
+
+          <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-lg">
+            <h4 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              Logos Obrigatórias
+            </h4>
+            <p className="text-sm text-red-800 mb-2">
+              As logos são OBRIGATÓRIAS e devem ser enviadas para ambos os aplicativos (Motorista e Passageiro).
+            </p>
+            <p className="text-sm text-red-700">
+              Você deve fazer o upload das 4 logos (2 para cada app) para que o formulário seja considerado completo.
+            </p>
+          </div>
 
           <div className="mb-4 p-4 bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-300 rounded-lg">
             <h4 className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
@@ -212,7 +225,7 @@ export default function PlayStoreSection({ form, clientId, onSave }: Props) {
                 <ImageUpload
                   formId={form.id}
                   clientId={clientId}
-                  label="Logo 1024x1024 PX (PNG)"
+                  label="Logo 1024x1024 PX (PNG) *"
                   imageType="logo_1024"
                   appType="driver"
                   storeType="playstore"
@@ -223,7 +236,7 @@ export default function PlayStoreSection({ form, clientId, onSave }: Props) {
                 <ImageUpload
                   formId={form.id}
                   clientId={clientId}
-                  label="Logo 352x68 PX (PNG)"
+                  label="Logo 352x68 PX (PNG) *"
                   imageType="logo_352"
                   appType="driver"
                   storeType="playstore"
@@ -240,7 +253,7 @@ export default function PlayStoreSection({ form, clientId, onSave }: Props) {
                 <ImageUpload
                   formId={form.id}
                   clientId={clientId}
-                  label="Logo 1024x1024 PX (PNG)"
+                  label="Logo 1024x1024 PX (PNG) *"
                   imageType="logo_1024"
                   appType="passenger"
                   storeType="playstore"
@@ -251,7 +264,7 @@ export default function PlayStoreSection({ form, clientId, onSave }: Props) {
                 <ImageUpload
                   formId={form.id}
                   clientId={clientId}
-                  label="Logo 352x68 PX (PNG)"
+                  label="Logo 352x68 PX (PNG) *"
                   imageType="logo_352"
                   appType="passenger"
                   storeType="playstore"
@@ -265,7 +278,7 @@ export default function PlayStoreSection({ form, clientId, onSave }: Props) {
         </div>
 
         <div className="border-t pt-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Imagens de Funcionalidades</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Imagens de Funcionalidades (Screenshots e Banners - Opcionais)</h3>
 
           <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
             <h4 className="font-semibold text-green-900 mb-3">Onde essas imagens aparecem na Play Store:</h4>
