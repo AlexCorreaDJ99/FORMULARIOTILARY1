@@ -183,13 +183,30 @@ export default function ClientDashboard() {
     filled += logosFilled;
 
     if (formData.image_source === 'tilary') {
-      if (formData.images_uploaded) {
+      const allMandatoryLogosUploaded = Object.values(mandatoryLogos).every((uploaded) => uploaded);
+
+      if (allMandatoryLogosUploaded) {
         filled += 1;
+
+        if (!formData.images_uploaded) {
+          await supabase
+            .from('app_forms')
+            .update({ images_uploaded: true })
+            .eq('id', formData.id);
+        }
+      } else {
+        if (formData.images_uploaded) {
+          await supabase
+            .from('app_forms')
+            .update({ images_uploaded: false })
+            .eq('id', formData.id);
+        }
       }
     } else if (formData.image_source === 'custom') {
+      const allMandatoryLogosUploaded = Object.values(mandatoryLogos).every((uploaded) => uploaded);
       const allOptionalImagesUploaded = Object.values(optionalImages).every((uploaded) => uploaded);
 
-      if (allOptionalImagesUploaded) {
+      if (allMandatoryLogosUploaded && allOptionalImagesUploaded) {
         filled += 1;
 
         if (!formData.images_uploaded) {
