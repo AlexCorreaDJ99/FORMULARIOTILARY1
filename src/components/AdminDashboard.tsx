@@ -53,6 +53,8 @@ export default function AdminDashboard() {
   const [filterFormStatus, setFilterFormStatus] = useState<string>('all');
   const [filterProjectStatus, setFilterProjectStatus] = useState<string>('all');
   const [sortByCompletionDate, setSortByCompletionDate] = useState<string>('none');
+  const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
+  const [selectionMode, setSelectionMode] = useState(false);
   const itemsPerPage = 40;
   const logsPerPage = 50;
   const notificationsPerPage = 50;
@@ -497,6 +499,98 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleToggleSelection = (clientId: string) => {
+    setSelectedClientIds(prev =>
+      prev.includes(clientId)
+        ? prev.filter(id => id !== clientId)
+        : [...prev, clientId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedClientIds.length === clients.length) {
+      setSelectedClientIds([]);
+    } else {
+      setSelectedClientIds(clients.map(c => c.id));
+    }
+  };
+
+  const handleDeleteSelectedForms = async () => {
+    const selectedClients = clients.filter(c => selectedClientIds.includes(c.id));
+    const clientsWithForms = selectedClients.filter(c => c.form?.id);
+
+    if (clientsWithForms.length === 0) {
+      alert('Nenhum dos clientes selecionados possui formulário para deletar.');
+      return;
+    }
+
+    const confirmMessage = `Tem certeza que deseja deletar ${clientsWithForms.length} formulário(s)?\n\nClientes afetados:\n${clientsWithForms.map(c => `- ${c.name}`).join('\n')}\n\nEsta ação NÃO pode ser desfeita!`;
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      let deletedCount = 0;
+      let errorCount = 0;
+
+      for (const client of clientsWithForms) {
+        try {
+          const { error: imagesError } = await supabase
+            .from('form_images')
+            .delete()
+            .eq('form_id', client.form!.id);
+
+          if (imagesError) {
+            console.error(`Erro ao deletar imagens do formulário ${client.form!.id}:`, imagesError);
+          }
+
+          const { error: formError } = await supabase
+            .from('app_forms')
+            .delete()
+            .eq('id', client.form!.id);
+
+          if (formError) {
+            console.error(`Erro ao deletar formulário ${client.form!.id}:`, formError);
+            errorCount++;
+            continue;
+          }
+
+          await logAdminAction(
+            'form_deleted',
+            `Deletou formulário do cliente: ${client.name}`,
+            'form',
+            client.form!.id,
+            client.name
+          );
+
+          deletedCount++;
+        } catch (error) {
+          console.error(`Erro ao processar cliente ${client.name}:`, error);
+          errorCount++;
+        }
+      }
+
+      setSelectedClientIds([]);
+      setSelectionMode(false);
+      await loadClients();
+
+      if (errorCount === 0) {
+        alert(`${deletedCount} formulário(s) deletado(s) com sucesso!`);
+      } else {
+        alert(`${deletedCount} formulário(s) deletado(s) com sucesso.\n${errorCount} erro(s) encontrado(s).`);
+      }
+    } catch (error) {
+      console.error('Erro ao deletar formulários:', error);
+      alert('Erro ao deletar formulários selecionados.');
+    }
+  };
+
+  const handleCancelSelection = () => {
+    setSelectionMode(false);
+    setSelectedClientIds([]);
+  };
+
   const getStatusBadge = (status?: string) => {
     if (!status) {
       return (
@@ -625,17 +719,55 @@ export default function AdminDashboard() {
                 <p className="text-sm sm:text-base text-gray-600 mt-1">Gerencie os clientes e seus formulários</p>
               </div>
               <div className="flex items-center gap-2">
-                <RecalculateProgressButton />
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="flex items-center gap-2 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
-                  style={{ backgroundColor: '#e40033' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c2002a'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e40033'}
-                >
-                  <Plus className="w-5 h-5" />
-                  Novo Cliente
-                </button>
+                {!selectionMode && <RecalculateProgressButton />}
+                {!selectionMode ? (
+                  <>
+                    <button
+                      onClick={() => setSelectionMode(true)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap border"
+                      style={{ color: '#e40033', borderColor: '#e40033' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(228, 0, 51, 0.05)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <CheckCircle className="w-5 h-5" />
+                      Selecionar
+                    </button>
+                    <button
+                      onClick={() => setShowCreateModal(true)}
+                      className="flex items-center gap-2 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+                      style={{ backgroundColor: '#e40033' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c2002a'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e40033'}
+                    >
+                      <Plus className="w-5 h-5" />
+                      Novo Cliente
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm font-medium text-gray-700">
+                      {selectedClientIds.length} selecionado(s)
+                    </span>
+                    <button
+                      onClick={handleDeleteSelectedForms}
+                      disabled={selectedClientIds.length === 0}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: '#dc2626', color: 'white' }}
+                      onMouseEnter={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = '#b91c1c')}
+                      onMouseLeave={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = '#dc2626')}
+                    >
+                      <Trash2 className="w-5 h-5" />
+                      Deletar Formulários
+                    </button>
+                    <button
+                      onClick={handleCancelSelection}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    >
+                      <X className="w-5 h-5" />
+                      Cancelar
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -717,6 +849,17 @@ export default function AdminDashboard() {
               <table className="min-w-full divide-y divide-gray-200 text-sm">
                 <thead className="bg-gray-50">
                   <tr>
+                    {selectionMode && (
+                      <th className="px-6 py-3 text-left">
+                        <input
+                          type="checkbox"
+                          checked={selectedClientIds.length === clients.length && clients.length > 0}
+                          onChange={handleSelectAll}
+                          className="w-4 h-4 rounded border-gray-300 focus:ring-2 cursor-pointer"
+                          style={{ accentColor: '#e40033' }}
+                        />
+                      </th>
+                    )}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Cliente
                     </th>
@@ -747,14 +890,27 @@ export default function AdminDashboard() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status Cliente
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Ações
-                    </th>
+                    {!selectionMode && (
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Ações
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {clients.map((client) => (
                     <tr key={client.id} className="hover:bg-gray-50 transition-colors">
+                      {selectionMode && (
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={selectedClientIds.includes(client.id)}
+                            onChange={() => handleToggleSelection(client.id)}
+                            className="w-4 h-4 rounded border-gray-300 focus:ring-2 cursor-pointer"
+                            style={{ accentColor: '#e40033' }}
+                          />
+                        </td>
+                      )}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">{client.name}</div>
@@ -1014,38 +1170,40 @@ export default function AdminDashboard() {
                           {client.status === 'active' ? 'Ativo' : 'Inativo'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setSelectedClient(client)}
-                            className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded"
-                            title="Visualizar"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setNotesClient(client)}
-                            className="text-purple-600 hover:text-purple-800 p-1 hover:bg-purple-50 rounded"
-                            title="Observações"
-                          >
-                            <FileText className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleToggleStatus(client.id, client.status)}
-                            className="text-yellow-600 hover:text-yellow-800 p-1 hover:bg-yellow-50 rounded"
-                            title={client.status === 'active' ? 'Desativar' : 'Reativar'}
-                          >
-                            <RefreshCw className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClient(client.id)}
-                            className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded"
-                            title="Excluir"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+                      {!selectionMode && (
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setSelectedClient(client)}
+                              className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded"
+                              title="Visualizar"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setNotesClient(client)}
+                              className="text-purple-600 hover:text-purple-800 p-1 hover:bg-purple-50 rounded"
+                              title="Observações"
+                            >
+                              <FileText className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleToggleStatus(client.id, client.status)}
+                              className="text-yellow-600 hover:text-yellow-800 p-1 hover:bg-yellow-50 rounded"
+                              title={client.status === 'active' ? 'Desativar' : 'Reativar'}
+                            >
+                              <RefreshCw className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClient(client.id)}
+                              className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded"
+                              title="Excluir"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                   {clients.length === 0 && (
