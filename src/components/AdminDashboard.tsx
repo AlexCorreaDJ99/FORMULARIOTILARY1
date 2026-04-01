@@ -517,14 +517,13 @@ export default function AdminDashboard() {
 
   const handleDeleteSelectedForms = async () => {
     const selectedClients = clients.filter(c => selectedClientIds.includes(c.id));
-    const clientsWithForms = selectedClients.filter(c => c.form?.id);
 
-    if (clientsWithForms.length === 0) {
-      alert('Nenhum dos clientes selecionados possui formulário para deletar.');
+    if (selectedClients.length === 0) {
+      alert('Nenhum cliente selecionado.');
       return;
     }
 
-    const confirmMessage = `Tem certeza que deseja deletar ${clientsWithForms.length} formulário(s)?\n\nClientes afetados:\n${clientsWithForms.map(c => `- ${c.name}`).join('\n')}\n\nEsta ação NÃO pode ser desfeita!`;
+    const confirmMessage = `Tem certeza que deseja deletar ${selectedClients.length} cliente(s)?\n\nClientes:\n${selectedClients.map(c => `- ${c.name}`).join('\n')}\n\nEsta ação marcará os clientes como excluídos e eles não poderão mais acessar o sistema.`;
 
     if (!confirm(confirmMessage)) {
       return;
@@ -534,34 +533,29 @@ export default function AdminDashboard() {
       let deletedCount = 0;
       let errorCount = 0;
 
-      for (const client of clientsWithForms) {
+      for (const client of selectedClients) {
         try {
-          const { error: imagesError } = await supabase
-            .from('form_images')
-            .delete()
-            .eq('form_id', client.form!.id);
+          const { error: updateError } = await supabase
+            .from('clients')
+            .update({
+              deleted: true,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', client.id);
 
-          if (imagesError) {
-            console.error(`Erro ao deletar imagens do formulário ${client.form!.id}:`, imagesError);
-          }
-
-          const { error: formError } = await supabase
-            .from('app_forms')
-            .delete()
-            .eq('id', client.form!.id);
-
-          if (formError) {
-            console.error(`Erro ao deletar formulário ${client.form!.id}:`, formError);
+          if (updateError) {
+            console.error(`Erro ao deletar cliente ${client.id}:`, updateError);
             errorCount++;
             continue;
           }
 
           await logAdminAction(
-            'form_deleted',
-            `Deletou formulário do cliente: ${client.name}`,
-            'form',
-            client.form!.id,
-            client.name
+            'client_deleted',
+            `Excluiu o cliente: ${client.name}`,
+            'client',
+            client.id,
+            client.name,
+            { email: client.email }
           );
 
           deletedCount++;
@@ -576,13 +570,13 @@ export default function AdminDashboard() {
       await loadClients();
 
       if (errorCount === 0) {
-        alert(`${deletedCount} formulário(s) deletado(s) com sucesso!`);
+        alert(`${deletedCount} cliente(s) deletado(s) com sucesso!`);
       } else {
-        alert(`${deletedCount} formulário(s) deletado(s) com sucesso.\n${errorCount} erro(s) encontrado(s).`);
+        alert(`${deletedCount} cliente(s) deletado(s) com sucesso.\n${errorCount} erro(s) encontrado(s).`);
       }
     } catch (error) {
-      console.error('Erro ao deletar formulários:', error);
-      alert('Erro ao deletar formulários selecionados.');
+      console.error('Erro ao deletar clientes:', error);
+      alert('Erro ao deletar clientes selecionados.');
     }
   };
 
@@ -757,7 +751,7 @@ export default function AdminDashboard() {
                       onMouseLeave={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = '#dc2626')}
                     >
                       <Trash2 className="w-5 h-5" />
-                      Deletar Formulários
+                      Deletar Clientes
                     </button>
                     <button
                       onClick={handleCancelSelection}
