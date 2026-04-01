@@ -145,7 +145,9 @@ export default function ClientDashboard() {
     }).length;
 
     if (formData.image_source === 'tilary') {
-      filled += 1;
+      if (formData.images_uploaded) {
+        filled += 1;
+      }
     } else if (formData.image_source === 'custom') {
       if (!formData.id) {
         return Math.round((filled / (fields.length + 1)) * 100);

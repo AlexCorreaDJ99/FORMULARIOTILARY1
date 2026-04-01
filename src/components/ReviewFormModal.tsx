@@ -45,7 +45,9 @@ export default function ReviewFormModal({
     }).length;
 
     if (formData.image_source === 'tilary') {
-      filled += 1;
+      if (formData.images_uploaded) {
+        filled += 1;
+      }
     } else if (formData.image_source === 'custom') {
       const { data: images } = await supabase
         .from('form_images')

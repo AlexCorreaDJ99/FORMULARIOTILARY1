@@ -28,7 +28,9 @@ export default function RecalculateProgressButton() {
     }).length;
 
     if (formData.image_source === 'tilary') {
-      filled += 1;
+      if (formData.images_uploaded) {
+        filled += 1;
+      }
     } else if (formData.image_source === 'custom') {
       const requiredImages = {
         driver_playstore_logo_1024: false,
