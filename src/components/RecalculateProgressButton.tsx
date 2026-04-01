@@ -24,7 +24,10 @@ export default function RecalculateProgressButton() {
 
     let filled = fields.filter((field) => {
       const value = formData[field];
-      return value && String(value).trim().length > 0;
+      if (!value) return false;
+      if (typeof value === 'string' && value.trim().length === 0) return false;
+      if (value === null || value === undefined) return false;
+      return true;
     }).length;
 
     const mandatoryLogos = {
@@ -73,7 +76,7 @@ export default function RecalculateProgressButton() {
   };
 
   const handleRecalculate = async () => {
-    if (!confirm('Deseja recalcular o progresso de todos os formulários? Isso pode levar alguns segundos.')) {
+    if (!confirm('Deseja recalcular o progresso de todos os formulários incompletos? Isso pode levar alguns segundos.')) {
       return;
     }
 
@@ -81,12 +84,13 @@ export default function RecalculateProgressButton() {
     try {
       const { data: forms, error } = await supabase
         .from('app_forms')
-        .select('*');
+        .select('*')
+        .neq('status', 'completed');
 
       if (error) throw error;
 
       if (!forms) {
-        alert('Nenhum formulário encontrado');
+        alert('Nenhum formulário incompleto encontrado');
         return;
       }
 
@@ -145,7 +149,7 @@ export default function RecalculateProgressButton() {
         updated++;
       }
 
-      alert(`Progresso recalculado com sucesso! ${updated} formulários atualizados.`);
+      alert(`Progresso recalculado com sucesso! ${updated} formulários incompletos atualizados.`);
       window.location.reload();
     } catch (error) {
       console.error('Error recalculating progress:', error);
