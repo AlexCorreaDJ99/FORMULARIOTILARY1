@@ -45,6 +45,7 @@ export default function AdminDashboard() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [logsPage, setLogsPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
+  const [filterLogClient, setFilterLogClient] = useState<string>('');
   const [notifications, setNotifications] = useState<ClientNotification[]>([]);
   const [notificationsPage, setNotificationsPage] = useState(1);
   const [totalNotifications, setTotalNotifications] = useState(0);
@@ -166,20 +167,31 @@ export default function AdminDashboard() {
 
   const loadLogs = async () => {
     try {
-      const { count } = await supabase
+      let countQuery = supabase
         .from('admin_activity_logs')
         .select('*', { count: 'exact', head: true });
 
+      if (filterLogClient.trim()) {
+        countQuery = countQuery.ilike('target_name', `%${filterLogClient.trim()}%`);
+      }
+
+      const { count } = await countQuery;
       setTotalLogs(count || 0);
 
       const from = (logsPage - 1) * logsPerPage;
       const to = from + logsPerPage - 1;
 
-      const { data, error } = await supabase
+      let dataQuery = supabase
         .from('admin_activity_logs')
         .select('*')
         .order('created_at', { ascending: false })
         .range(from, to);
+
+      if (filterLogClient.trim()) {
+        dataQuery = dataQuery.ilike('target_name', `%${filterLogClient.trim()}%`);
+      }
+
+      const { data, error } = await dataQuery;
 
       if (error) throw error;
       setLogs(data || []);
@@ -194,7 +206,7 @@ export default function AdminDashboard() {
     } else if (activeTab === 'notifications') {
       loadNotifications();
     }
-  }, [activeTab, logsPage, notificationsPage, filterNotificationType, filterNotificationRead]);
+  }, [activeTab, logsPage, notificationsPage, filterNotificationType, filterNotificationRead, filterLogClient]);
 
   const loadNotifications = async () => {
     try {
@@ -1325,10 +1337,30 @@ export default function AdminDashboard() {
 
         {activeTab === 'logs' && (
           <>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Log de Alterações</h2>
                 <p className="text-sm sm:text-base text-gray-600 mt-1">Histórico de ações dos administradores</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Filtrar por cliente..."
+                  value={filterLogClient}
+                  onChange={(e) => {
+                    setFilterLogClient(e.target.value);
+                    setLogsPage(1);
+                  }}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
+                />
+                {filterLogClient && (
+                  <button
+                    onClick={() => { setFilterLogClient(''); setLogsPage(1); }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors text-sm px-2"
+                  >
+                    Limpar
+                  </button>
+                )}
               </div>
             </div>
 
