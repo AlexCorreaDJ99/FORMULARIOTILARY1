@@ -43,6 +43,7 @@ export default function AdminDashboard() {
   const [completionDate, setCompletionDate] = useState('');
   const [notesClient, setNotesClient] = useState<ClientWithForm | null>(null);
   const [reviewClient, setReviewClient] = useState<ClientWithForm | null>(null);
+  const [editPortabilityClient, setEditPortabilityClient] = useState<ClientWithForm | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalClients, setTotalClients] = useState(0);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -275,6 +276,21 @@ export default function AdminDashboard() {
       loadNotifications();
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  const handleUpdatePortability = async (clientId: string, isPortability: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .update({ is_portability: isPortability })
+        .eq('id', clientId);
+
+      if (error) throw error;
+      setEditPortabilityClient(null);
+      loadClients();
+    } catch (error) {
+      console.error('Error updating portability:', error);
     }
   };
 
@@ -1214,10 +1230,17 @@ export default function AdminDashboard() {
                             </button>
                             <button
                               onClick={() => setNotesClient(client)}
-                              className="text-purple-600 hover:text-purple-800 p-1 hover:bg-purple-50 rounded"
+                              className="text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded"
                               title="Observações"
                             >
                               <FileText className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setEditPortabilityClient(client)}
+                              className={`p-1 rounded transition-colors ${client.is_portability ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-50' : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'}`}
+                              title={client.is_portability ? 'Portabilidade: Sim — clique para editar' : 'Portabilidade: Não — clique para editar'}
+                            >
+                              <Edit2 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleToggleStatus(client.id, client.status)}
@@ -1796,6 +1819,14 @@ export default function AdminDashboard() {
           }}
         />
       )}
+
+      {editPortabilityClient && (
+        <EditPortabilityModal
+          client={editPortabilityClient}
+          onClose={() => setEditPortabilityClient(null)}
+          onSave={(isPortability) => handleUpdatePortability(editPortabilityClient.id, isPortability)}
+        />
+      )}
     </div>
   );
 }
@@ -2005,6 +2036,76 @@ function ClientDetailsModal({ client, onClose }: { client: ClientWithForm; onClo
           ) : (
             <p className="text-gray-500 text-center py-8">Cliente ainda não iniciou o formulário</p>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditPortabilityModal({
+  client,
+  onClose,
+  onSave,
+}: {
+  client: ClientWithForm;
+  onClose: () => void;
+  onSave: (isPortability: boolean) => void;
+}) {
+  const [isPortability, setIsPortability] = useState(client.is_portability ?? false);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+        <div className="flex justify-between items-center px-6 py-4 border-b">
+          <h3 className="text-base font-bold text-gray-900">Editar Portabilidade</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="px-6 py-5">
+          <p className="text-sm text-gray-600 mb-4">
+            Cliente: <span className="font-semibold text-gray-900">{client.name}</span>
+          </p>
+          <p className="text-sm font-medium text-gray-700 mb-3">É Portabilidade?</p>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setIsPortability(true)}
+              className={`flex-1 py-2 px-4 rounded-lg border-2 text-sm font-medium transition-colors ${
+                isPortability
+                  ? 'border-amber-500 bg-amber-50 text-amber-800'
+                  : 'border-gray-200 text-gray-500 hover:border-amber-300'
+              }`}
+            >
+              Sim
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsPortability(false)}
+              className={`flex-1 py-2 px-4 rounded-lg border-2 text-sm font-medium transition-colors ${
+                !isPortability
+                  ? 'border-gray-500 bg-gray-100 text-gray-800'
+                  : 'border-gray-200 text-gray-500 hover:border-gray-400'
+              }`}
+            >
+              Não
+            </button>
+          </div>
+        </div>
+        <div className="px-6 py-4 border-t flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => onSave(isPortability)}
+            className="px-4 py-2 text-sm text-white rounded-lg hover:opacity-90 transition-opacity"
+            style={{ backgroundColor: '#e40033' }}
+          >
+            Salvar
+          </button>
         </div>
       </div>
     </div>
