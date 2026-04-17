@@ -16,6 +16,7 @@ interface CreateClientRequest {
   authorized_cities: string;
   notes: string;
   expectations: string;
+  is_portability?: boolean;
 }
 
 Deno.serve(async (req: Request) => {
@@ -55,7 +56,7 @@ Deno.serve(async (req: Request) => {
       throw new Error("Unauthorized: Admin access required");
     }
 
-    const { name, email, ios_app_type, sales_person, plan, authorized_cities, notes, expectations }: CreateClientRequest = await req.json();
+    const { name, email, ios_app_type, sales_person, plan, authorized_cities, notes, expectations, is_portability }: CreateClientRequest = await req.json();
 
     if (!name || !email || !ios_app_type || !sales_person || !plan || !authorized_cities || !notes || !expectations) {
       throw new Error("All fields are required");
@@ -120,6 +121,7 @@ Deno.serve(async (req: Request) => {
         authorized_cities,
         notes,
         expectations,
+        is_portability: is_portability ?? false,
         deleted: false,
       })
       .select()

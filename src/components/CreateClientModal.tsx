@@ -18,6 +18,7 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
   const [authorizedCities, setAuthorizedCities] = useState('');
   const [notes, setNotes] = useState('');
   const [expectations, setExpectations] = useState('');
+  const [isPortability, setIsPortability] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -62,7 +63,8 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
           plan,
           authorized_cities: authorizedCities,
           notes,
-          expectations
+          expectations,
+          is_portability: isPortability,
         }),
       });
 
@@ -184,6 +186,36 @@ export default function CreateClientModal({ onClose, onSuccess }: Props) {
               placeholder="Ex: Cururupu - MA&#10;Central - MA&#10;Mirinzal - MA"
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              É Portabilidade?
+            </label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setIsPortability(true)}
+                className={`flex-1 py-2 px-4 rounded-lg border text-sm font-medium transition-colors ${
+                  isPortability
+                    ? 'border-amber-400 bg-amber-50 text-amber-800'
+                    : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Sim
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPortability(false)}
+                className={`flex-1 py-2 px-4 rounded-lg border text-sm font-medium transition-colors ${
+                  !isPortability
+                    ? 'border-gray-800 bg-gray-900 text-white'
+                    : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Não
+              </button>
+            </div>
           </div>
 
           <div>

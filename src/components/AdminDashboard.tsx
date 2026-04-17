@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Client, AppForm, ActivityLog, ClientNotification, logAdminAction } from '../lib/supabase';
-import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check, CheckCircle, FileText, Mail, ChevronLeft, ChevronRight, ClipboardList, CreditCard as Edit2, Bell } from 'lucide-react';
+import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check, CheckCircle, FileText, Mail, ChevronLeft, ChevronRight, ClipboardList, CreditCard as Edit2, Bell, BellRing } from 'lucide-react';
 import CreateClientModal from './CreateClientModal';
 import CreateAdminModal from './CreateAdminModal';
 import EditAdminPasswordModal from './EditAdminPasswordModal';
@@ -10,6 +10,7 @@ import NotificationBell from './NotificationBell';
 import NotesModal from './NotesModal';
 import ReviewFormModal from './ReviewFormModal';
 import RecalculateProgressButton from './RecalculateProgressButton';
+import AdminNotificationsTab from './AdminNotificationsTab';
 
 type ClientWithForm = Client & {
   form?: AppForm;
@@ -24,7 +25,9 @@ type AdminProfile = {
 
 export default function AdminDashboard() {
   const { signOut, profile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'clients' | 'admins' | 'logs' | 'notifications'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'admins' | 'logs' | 'notifications' | 'admin_notifications'>('clients');
+  const [adminNotifUnread, setAdminNotifUnread] = useState(0);
+  const [soundEnabled, setSoundEnabled] = useState(() => localStorage.getItem('adminSoundEnabled') !== 'false');
   const [clients, setClients] = useState<ClientWithForm[]>([]);
   const [admins, setAdmins] = useState<AdminProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -715,6 +718,22 @@ export default function AdminDashboard() {
             <Bell className="w-5 h-5" />
             <span className="text-sm sm:text-base">Notificações</span>
           </button>
+          <button
+            onClick={() => setActiveTab('admin_notifications')}
+            className={`relative flex items-center gap-2 px-3 sm:px-4 py-3 font-medium transition-all border-b-2 whitespace-nowrap ${
+              activeTab === 'admin_notifications'
+                ? 'border-red-600 text-red-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <BellRing className="w-5 h-5" />
+            <span className="text-sm sm:text-base">Alertas Admin</span>
+            {adminNotifUnread > 0 && (
+              <span className="absolute top-2 right-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white rounded-full" style={{ backgroundColor: '#e40033' }}>
+                {adminNotifUnread > 9 ? '9+' : adminNotifUnread}
+              </span>
+            )}
+          </button>
         </div>
 
         {activeTab === 'clients' && (
@@ -905,7 +924,7 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {clients.map((client) => (
-                    <tr key={client.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={client.id} className="hover:bg-gray-50 transition-colors" style={client.is_portability ? { backgroundColor: '#FFF3CD' } : {}}>
                       {selectionMode && (
                         <td className="px-6 py-4 whitespace-nowrap">
                           <input
@@ -919,7 +938,14 @@ export default function AdminDashboard() {
                       )}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{client.name}</div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-medium text-gray-900">{client.name}</span>
+                            {client.is_portability && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-amber-200 text-amber-800 border border-amber-300">
+                                Portabilidade
+                              </span>
+                            )}
+                          </div>
                           <div className="text-sm text-gray-500">{client.email}</div>
                         </div>
                       </td>
@@ -1670,6 +1696,22 @@ export default function AdminDashboard() {
               </div>
             )}
           </>
+        )}
+
+        {activeTab === 'admin_notifications' && (
+          <AdminNotificationsTab
+            onUnreadCountChange={setAdminNotifUnread}
+            onOpenClient={(clientId) => {
+              setActiveTab('clients');
+              setSelectedClient(clients.find(c => c.id === clientId) || null);
+            }}
+            soundEnabled={soundEnabled}
+            onToggleSound={() => {
+              const next = !soundEnabled;
+              setSoundEnabled(next);
+              localStorage.setItem('adminSoundEnabled', String(next));
+            }}
+          />
         )}
       </div>
 

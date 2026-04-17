@@ -33,6 +33,7 @@ export type Client = {
   authorized_cities?: string;
   notes?: string;
   expectations?: string;
+  is_portability: boolean;
   deleted: boolean;
   created_by: string;
   created_at: string;
@@ -77,6 +78,9 @@ export type AppForm = {
   driver_terms?: string;
   passenger_terms?: string;
   company_terms?: string;
+  is_completed?: boolean;
+  completed_at?: string;
+  last_access_at?: string;
   created_at: string;
   updated_at: string;
 };
