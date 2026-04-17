@@ -26,11 +26,14 @@ Deno.serve(async (req: Request) => {
       deadline_alerts: 0,
     };
 
+    const CONCLUDED_STATUSES = ['completed', 'panel_delivered'];
+
     const { data: incompleteForms } = await supabase
       .from('app_forms')
-      .select('id, client_id, created_at, progress_percentage')
+      .select('id, client_id, created_at, progress_percentage, project_status')
       .eq('is_completed', false)
-      .lt('created_at', twoDaysAgo.toISOString());
+      .lt('created_at', twoDaysAgo.toISOString())
+      .not('project_status', 'in', `(${CONCLUDED_STATUSES.join(',')})`);
 
     for (const form of incompleteForms || []) {
       const { data: client } = await supabase
@@ -60,9 +63,10 @@ Deno.serve(async (req: Request) => {
 
     const { data: inactiveForms } = await supabase
       .from('app_forms')
-      .select('id, client_id, last_access_at, last_activity_date, progress_percentage')
+      .select('id, client_id, last_access_at, last_activity_date, progress_percentage, project_status')
       .eq('is_completed', false)
-      .lt('last_activity_date', twoDaysAgo.toISOString());
+      .lt('last_activity_date', twoDaysAgo.toISOString())
+      .not('project_status', 'in', `(${CONCLUDED_STATUSES.join(',')})`);
 
     for (const form of inactiveForms || []) {
       const { data: client } = await supabase
@@ -98,7 +102,7 @@ Deno.serve(async (req: Request) => {
       .select('id, client_id, completed_at, project_status')
       .eq('is_completed', true)
       .not('completed_at', 'is', null)
-      .neq('project_status', 'entregue');
+      .not('project_status', 'in', `(${CONCLUDED_STATUSES.join(',')})`);
 
     const milestones = [
       { days: 2, type: 'info' as const, label: 'Início de projeto' },
