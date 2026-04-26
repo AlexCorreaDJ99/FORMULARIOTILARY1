@@ -74,6 +74,12 @@ export default function TermsSection({ form, onSave }: Props) {
           </p>
         </div>
 
+        <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
+          <p className="text-sm text-sky-800">
+            Os termos informados serão utilizados na publicação do aplicativo nas lojas. Caso não estejam dentro dos padrões aceitos, poderá ser necessário utilizar um modelo padrão para garantir a aprovação.
+          </p>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Termos de Uso da Empresa *
