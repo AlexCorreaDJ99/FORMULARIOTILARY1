@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, AppForm, Client } from '../lib/supabase';
-import { LogOut, Save, CheckCircle, Menu, X, Lock } from 'lucide-react';
+import { LogOut, Save, CheckCircle, Menu, X } from 'lucide-react';
 import SetupSection from './form-sections/SetupSection';
 import PlayStoreSection from './form-sections/PlayStoreSection';
 import AppStoreSection from './form-sections/AppStoreSection';
@@ -229,11 +229,8 @@ export default function ClientDashboard() {
     return Math.round((filled / total) * 100);
   };
 
-  const isFormLocked = form?.form_locked ?? false;
-
   const handleSaveForm = async (updates: Partial<AppForm>) => {
     if (!form || !client) return;
-    if (isFormLocked) return;
 
     setSaving(true);
     try {
@@ -309,10 +306,9 @@ export default function ClientDashboard() {
         status,
       };
 
-      if (progress === 100 && oldProgress < 100) {
+      if (progress === 100 && oldProgress < 100 && !updatedForm.completion_date) {
         const now = new Date();
         updateData.completion_date = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-        updateData.form_locked = true;
       } else if (progress < 100 && updatedForm.completion_date) {
         updateData.completion_date = null;
       }
@@ -550,20 +546,7 @@ export default function ClientDashboard() {
           </div>
 
           <div className="lg:col-span-9">
-            {isFormLocked && activeSection !== 'status' && (
-              <div className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <Lock className="w-6 h-6 text-red-600 flex-shrink-0" />
-                  <div>
-                    <h3 className="text-base font-semibold text-red-900">Formulário finalizado</h3>
-                    <p className="text-sm text-red-700 mt-0.5">
-                      Para realizar alterações, entre em contato com o suporte.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className={`bg-white rounded-xl shadow-sm p-4 sm:p-6 ${isFormLocked && activeSection !== 'status' ? 'pointer-events-none opacity-60' : ''}`}>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
               {activeSection === 'status' && (
                 <ProjectStatusSection
                   projectStatus={form.project_status || 'pending'}

@@ -81,7 +81,6 @@ export type AppForm = {
   is_completed?: boolean;
   completed_at?: string;
   last_access_at?: string;
-  form_locked?: boolean;
   created_at: string;
   updated_at: string;
 };

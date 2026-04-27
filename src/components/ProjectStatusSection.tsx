@@ -155,15 +155,6 @@ export default function ProjectStatusSection({
         </div>
       </div>
 
-      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-        <div className="flex items-start gap-3">
-          <Clock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <p className="text-blue-800 text-sm leading-relaxed">
-            Após a conclusão total do formulário, o prazo de entrega pode levar até 15 dias.
-          </p>
-        </div>
-      </div>
-
       <div className="space-y-1">
         {statusSteps.map((step, index) => {
           const status = getStepStatus(index);
