@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Client, AppForm, ActivityLog, ClientNotification, logAdminAction } from '../lib/supabase';
-import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check, CheckCircle, FileText, Mail, ChevronLeft, ChevronRight, ClipboardList, CreditCard as Edit2, Bell, BellRing } from 'lucide-react';
+import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check, CheckCircle, FileText, Mail, ChevronLeft, ChevronRight, ClipboardList, CreditCard as Edit2, Bell, BellRing, Lock, Unlock } from 'lucide-react';
 import CreateClientModal from './CreateClientModal';
 import CreateAdminModal from './CreateAdminModal';
 import EditAdminPasswordModal from './EditAdminPasswordModal';
@@ -453,6 +453,30 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error removing meeting:', error);
       alert('Erro ao remover reunião');
+    }
+  };
+
+  const handleToggleFormLock = async (formId: string, currentlyLocked: boolean, clientName: string) => {
+    try {
+      const newLocked = !currentlyLocked;
+      const { error } = await supabase
+        .from('app_forms')
+        .update({ form_locked: newLocked })
+        .eq('id', formId);
+
+      if (error) throw error;
+
+      await logAdminAction(
+        newLocked ? 'form_locked' : 'form_unlocked',
+        newLocked ? `Bloqueou o formulário do cliente ${clientName}` : `Desbloqueou o formulário do cliente ${clientName}`,
+        'form',
+        formId,
+        clientName
+      );
+
+      loadClients();
+    } catch (error) {
+      console.error('Error toggling form lock:', error);
     }
   };
 
@@ -1242,6 +1266,19 @@ export default function AdminDashboard() {
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
+                            {client.form?.id && (
+                              <button
+                                onClick={() => handleToggleFormLock(client.form!.id, !!client.form!.form_locked, client.name)}
+                                className={`p-1 rounded transition-colors ${
+                                  client.form.form_locked
+                                    ? 'text-red-600 hover:text-red-800 hover:bg-red-50'
+                                    : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+                                }`}
+                                title={client.form.form_locked ? 'Formulário bloqueado — clique para desbloquear' : 'Formulário desbloqueado — clique para bloquear'}
+                              >
+                                {client.form.form_locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                              </button>
+                            )}
                             <button
                               onClick={() => handleToggleStatus(client.id, client.status)}
                               className="text-yellow-600 hover:text-yellow-800 p-1 hover:bg-yellow-50 rounded"

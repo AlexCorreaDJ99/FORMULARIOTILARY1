@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, AppForm, Client } from '../lib/supabase';
-import { LogOut, Save, CheckCircle, Menu, X } from 'lucide-react';
+import { LogOut, Save, CheckCircle, Menu, X, Lock } from 'lucide-react';
 import SetupSection from './form-sections/SetupSection';
 import PlayStoreSection from './form-sections/PlayStoreSection';
 import AppStoreSection from './form-sections/AppStoreSection';
@@ -230,7 +230,7 @@ export default function ClientDashboard() {
   };
 
   const handleSaveForm = async (updates: Partial<AppForm>) => {
-    if (!form || !client) return;
+    if (!form || !client || form.form_locked) return;
 
     setSaving(true);
     try {
@@ -546,30 +546,49 @@ export default function ClientDashboard() {
           </div>
 
           <div className="lg:col-span-9">
+            {form.form_locked && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+                <Lock className="w-5 h-5 text-red-600 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-red-800">Formulario Bloqueado</p>
+                  <p className="text-xs text-red-600 mt-0.5">Este formulario foi bloqueado pela administracao e nao pode ser editado no momento.</p>
+                </div>
+              </div>
+            )}
             <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-              {activeSection === 'status' && (
-                <ProjectStatusSection
-                  projectStatus={form.project_status || 'pending'}
-                  reviewStatus={form.review_status}
-                  reviewFeedback={form.review_feedback}
-                  correctionsCompleted={form.corrections_completed}
-                  onMarkCorrectionsComplete={handleMarkCorrectionsComplete}
-                />
-              )}
-              {activeSection === 'setup' && (
-                <SetupSection form={form} clientId={client.id} onSave={handleSaveForm} />
-              )}
-              {activeSection === 'store' && (
-                <StoreOwnerSection form={form} onSave={handleSaveForm} />
-              )}
-              {activeSection === 'playstore' && (
-                <PlayStoreSection form={form} clientId={client.id} onSave={handleSaveForm} />
-              )}
-              {activeSection === 'appstore' && (
-                <AppStoreSection form={form} clientId={client.id} onSave={handleSaveForm} />
-              )}
-              {activeSection === 'terms' && (
-                <TermsSection form={form} onSave={handleSaveForm} />
+              {form.form_locked && activeSection !== 'status' ? (
+                <div className="text-center py-12">
+                  <Lock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">Formulario bloqueado para edicao</p>
+                  <p className="text-sm text-gray-400 mt-1">Entre em contato com a administracao para mais informacoes.</p>
+                </div>
+              ) : (
+                <>
+                  {activeSection === 'status' && (
+                    <ProjectStatusSection
+                      projectStatus={form.project_status || 'pending'}
+                      reviewStatus={form.review_status}
+                      reviewFeedback={form.review_feedback}
+                      correctionsCompleted={form.corrections_completed}
+                      onMarkCorrectionsComplete={form.form_locked ? undefined : handleMarkCorrectionsComplete}
+                    />
+                  )}
+                  {activeSection === 'setup' && (
+                    <SetupSection form={form} clientId={client.id} onSave={handleSaveForm} />
+                  )}
+                  {activeSection === 'store' && (
+                    <StoreOwnerSection form={form} onSave={handleSaveForm} />
+                  )}
+                  {activeSection === 'playstore' && (
+                    <PlayStoreSection form={form} clientId={client.id} onSave={handleSaveForm} />
+                  )}
+                  {activeSection === 'appstore' && (
+                    <AppStoreSection form={form} clientId={client.id} onSave={handleSaveForm} />
+                  )}
+                  {activeSection === 'terms' && (
+                    <TermsSection form={form} onSave={handleSaveForm} />
+                  )}
+                </>
               )}
             </div>
           </div>

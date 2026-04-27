@@ -60,6 +60,7 @@ export type AppForm = {
   reviewed_by?: string;
   corrections_completed?: boolean;
   corrections_completed_at?: string;
+  form_locked?: boolean;
   admin_notified_of_changes?: boolean;
   last_activity_date?: string;
   last_client_update?: string;
