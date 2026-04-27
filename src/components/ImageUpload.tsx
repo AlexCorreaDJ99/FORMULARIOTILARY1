@@ -378,6 +378,17 @@ export default function ImageUpload({
             </div>
           )}
 
+          {localImageSource === 'custom' && !showTilaryConfirmation && (
+            <div className="bg-sky-50 border border-sky-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-sky-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-sky-800">
+                  As imagens devem seguir as diretrizes das lojas. Caso seja identificado conteúdo como autopromoção ou elementos que não sejam aceitos, poderão ser substituídas pelas imagens padrão para garantir a publicação.
+                </p>
+              </div>
+            </div>
+          )}
+
           {localImageSource === 'tilary' && !showTilaryConfirmation && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <div className="flex items-start gap-3">

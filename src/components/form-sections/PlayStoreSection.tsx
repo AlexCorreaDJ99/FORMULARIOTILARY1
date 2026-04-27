@@ -87,6 +87,16 @@ export default function PlayStoreSection({ form, clientId, onSave }: Props) {
           </p>
         </div>
 
+        <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
+          <h4 className="font-medium text-sky-900 mb-1 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            Aviso sobre descrições
+          </h4>
+          <p className="text-sm text-sky-800">
+            As descrições devem ser sobre o aplicativo e não podem conter emojis. Caso o conteúdo não esteja de acordo com as diretrizes das lojas, poderá ser substituído por uma versão padrão para garantir a publicação.
+          </p>
+        </div>
+
         <div className="border-t pt-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">App Motorista</h3>
           <div className="space-y-4">

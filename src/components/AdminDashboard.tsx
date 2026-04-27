@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Client, AppForm, ActivityLog, ClientNotification, logAdminAction } from '../lib/supabase';
-import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check, CheckCircle, FileText, Mail, ChevronLeft, ChevronRight, ClipboardList, CreditCard as Edit2, Bell, BellRing, Lock, Unlock } from 'lucide-react';
+import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check, CheckCircle, FileText, Mail, ChevronLeft, ChevronRight, ClipboardList, CreditCard as Edit2, Bell, BellRing, Pencil } from 'lucide-react';
 import CreateClientModal from './CreateClientModal';
 import CreateAdminModal from './CreateAdminModal';
 import EditAdminPasswordModal from './EditAdminPasswordModal';
@@ -44,6 +44,7 @@ export default function AdminDashboard() {
   const [notesClient, setNotesClient] = useState<ClientWithForm | null>(null);
   const [reviewClient, setReviewClient] = useState<ClientWithForm | null>(null);
   const [editPortabilityClient, setEditPortabilityClient] = useState<ClientWithForm | null>(null);
+  const [editNameClient, setEditNameClient] = useState<ClientWithForm | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalClients, setTotalClients] = useState(0);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -294,6 +295,35 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleUpdateClientName = async (clientId: string, newName: string) => {
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .update({ name: newName })
+        .eq('id', clientId);
+
+      if (error) throw error;
+      setEditNameClient(null);
+      loadClients();
+    } catch (error) {
+      console.error('Error updating client name:', error);
+    }
+  };
+
+  const handleToggleFormLock = async (formId: string, currentLocked: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('app_forms')
+        .update({ form_locked: !currentLocked })
+        .eq('id', formId);
+
+      if (error) throw error;
+      loadClients();
+    } catch (error) {
+      console.error('Error toggling form lock:', error);
+    }
+  };
+
   const handleToggleStatus = async (clientId: string, currentStatus: string) => {
     try {
       const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
@@ -453,30 +483,6 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error removing meeting:', error);
       alert('Erro ao remover reunião');
-    }
-  };
-
-  const handleToggleFormLock = async (formId: string, currentlyLocked: boolean, clientName: string) => {
-    try {
-      const newLocked = !currentlyLocked;
-      const { error } = await supabase
-        .from('app_forms')
-        .update({ form_locked: newLocked })
-        .eq('id', formId);
-
-      if (error) throw error;
-
-      await logAdminAction(
-        newLocked ? 'form_locked' : 'form_unlocked',
-        newLocked ? `Bloqueou o formulário do cliente ${clientName}` : `Desbloqueou o formulário do cliente ${clientName}`,
-        'form',
-        formId,
-        clientName
-      );
-
-      loadClients();
-    } catch (error) {
-      console.error('Error toggling form lock:', error);
     }
   };
 
@@ -925,6 +931,9 @@ export default function AdminDashboard() {
                         />
                       </th>
                     )}
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10 w-10">
+                      #
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Cliente
                     </th>
@@ -952,6 +961,9 @@ export default function AdminDashboard() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Revisão
                     </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Formulário
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status Cliente
                     </th>
@@ -963,7 +975,7 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {clients.map((client) => (
+                  {clients.map((client, index) => (
                     <tr key={client.id} className="hover:bg-gray-50 transition-colors" style={client.is_portability ? { backgroundColor: '#FFF3CD' } : {}}>
                       {selectionMode && (
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -976,6 +988,11 @@ export default function AdminDashboard() {
                           />
                         </td>
                       )}
+                      <td className="px-3 py-4 whitespace-nowrap text-center sticky left-0 z-10" style={client.is_portability ? { backgroundColor: '#FFF3CD' } : { backgroundColor: 'inherit' }}>
+                        <span className="text-xs font-medium text-gray-400">
+                          {((currentPage - 1) * itemsPerPage) + index + 1}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="flex items-center gap-1.5">
@@ -1233,6 +1250,23 @@ export default function AdminDashboard() {
                           <span className="text-xs text-gray-400">N/A</span>
                         )}
                       </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-center">
+                        {client.form?.id ? (
+                          <button
+                            onClick={() => handleToggleFormLock(client.form!.id, client.form!.form_locked ?? false)}
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                              client.form.form_locked
+                                ? 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-200'
+                                : 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-200'
+                            }`}
+                            title={client.form.form_locked ? 'Formulário bloqueado — clique para desbloquear' : 'Formulário aberto — clique para bloquear'}
+                          >
+                            {client.form.form_locked ? 'Bloqueado' : 'Aberto'}
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400">N/A</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           client.status === 'active'
@@ -1253,6 +1287,13 @@ export default function AdminDashboard() {
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
+                              onClick={() => setEditNameClient(client)}
+                              className="text-teal-600 hover:text-teal-800 p-1 hover:bg-teal-50 rounded"
+                              title="Editar nome do cliente"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
                               onClick={() => setNotesClient(client)}
                               className="text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded"
                               title="Observações"
@@ -1266,19 +1307,6 @@ export default function AdminDashboard() {
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
-                            {client.form?.id && (
-                              <button
-                                onClick={() => handleToggleFormLock(client.form!.id, !!client.form!.form_locked, client.name)}
-                                className={`p-1 rounded transition-colors ${
-                                  client.form.form_locked
-                                    ? 'text-red-600 hover:text-red-800 hover:bg-red-50'
-                                    : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
-                                }`}
-                                title={client.form.form_locked ? 'Formulário bloqueado — clique para desbloquear' : 'Formulário desbloqueado — clique para bloquear'}
-                              >
-                                {client.form.form_locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                              </button>
-                            )}
                             <button
                               onClick={() => handleToggleStatus(client.id, client.status)}
                               className="text-yellow-600 hover:text-yellow-800 p-1 hover:bg-yellow-50 rounded"
@@ -1300,7 +1328,7 @@ export default function AdminDashboard() {
                   ))}
                   {clients.length === 0 && (
                     <tr>
-                      <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={13} className="px-6 py-12 text-center text-gray-500">
                         Nenhum cliente cadastrado ainda
                       </td>
                     </tr>
@@ -1864,6 +1892,14 @@ export default function AdminDashboard() {
           onSave={(isPortability) => handleUpdatePortability(editPortabilityClient.id, isPortability)}
         />
       )}
+
+      {editNameClient && (
+        <EditNameModal
+          client={editNameClient}
+          onClose={() => setEditNameClient(null)}
+          onSave={(newName) => handleUpdateClientName(editNameClient.id, newName)}
+        />
+      )}
     </div>
   );
 }
@@ -2139,6 +2175,57 @@ function EditPortabilityModal({
           <button
             onClick={() => onSave(isPortability)}
             className="px-4 py-2 text-sm text-white rounded-lg hover:opacity-90 transition-opacity"
+            style={{ backgroundColor: '#e40033' }}
+          >
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditNameModal({
+  client,
+  onClose,
+  onSave,
+}: {
+  client: ClientWithForm;
+  onClose: () => void;
+  onSave: (name: string) => void;
+}) {
+  const [name, setName] = useState(client.name);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+        <div className="flex justify-between items-center px-6 py-4 border-b">
+          <h3 className="text-base font-bold text-gray-900">Editar Nome</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="px-6 py-5">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Nome do Cliente</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Nome do cliente"
+          />
+        </div>
+        <div className="px-6 py-4 border-t flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => name.trim() && onSave(name.trim())}
+            disabled={!name.trim()}
+            className="px-4 py-2 text-sm text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
             style={{ backgroundColor: '#e40033' }}
           >
             Salvar

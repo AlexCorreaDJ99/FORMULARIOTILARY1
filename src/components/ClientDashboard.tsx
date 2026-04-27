@@ -229,8 +229,11 @@ export default function ClientDashboard() {
     return Math.round((filled / total) * 100);
   };
 
+  const isFormLocked = form?.form_locked ?? false;
+
   const handleSaveForm = async (updates: Partial<AppForm>) => {
-    if (!form || !client || form.form_locked) return;
+    if (!form || !client) return;
+    if (isFormLocked) return;
 
     setSaving(true);
     try {
@@ -306,9 +309,10 @@ export default function ClientDashboard() {
         status,
       };
 
-      if (progress === 100 && oldProgress < 100 && !updatedForm.completion_date) {
+      if (progress === 100 && oldProgress < 100) {
         const now = new Date();
         updateData.completion_date = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+        updateData.form_locked = true;
       } else if (progress < 100 && updatedForm.completion_date) {
         updateData.completion_date = null;
       }
@@ -546,49 +550,43 @@ export default function ClientDashboard() {
           </div>
 
           <div className="lg:col-span-9">
-            {form.form_locked && (
-              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
-                <Lock className="w-5 h-5 text-red-600 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-red-800">Formulario Bloqueado</p>
-                  <p className="text-xs text-red-600 mt-0.5">Este formulario foi bloqueado pela administracao e nao pode ser editado no momento.</p>
+            {isFormLocked && activeSection !== 'status' && (
+              <div className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <Lock className="w-6 h-6 text-red-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-base font-semibold text-red-900">Formulário finalizado</h3>
+                    <p className="text-sm text-red-700 mt-0.5">
+                      Para realizar alterações, entre em contato com o suporte.
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
-            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-              {form.form_locked && activeSection !== 'status' ? (
-                <div className="text-center py-12">
-                  <Lock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 font-medium">Formulario bloqueado para edicao</p>
-                  <p className="text-sm text-gray-400 mt-1">Entre em contato com a administracao para mais informacoes.</p>
-                </div>
-              ) : (
-                <>
-                  {activeSection === 'status' && (
-                    <ProjectStatusSection
-                      projectStatus={form.project_status || 'pending'}
-                      reviewStatus={form.review_status}
-                      reviewFeedback={form.review_feedback}
-                      correctionsCompleted={form.corrections_completed}
-                      onMarkCorrectionsComplete={form.form_locked ? undefined : handleMarkCorrectionsComplete}
-                    />
-                  )}
-                  {activeSection === 'setup' && (
-                    <SetupSection form={form} clientId={client.id} onSave={handleSaveForm} />
-                  )}
-                  {activeSection === 'store' && (
-                    <StoreOwnerSection form={form} onSave={handleSaveForm} />
-                  )}
-                  {activeSection === 'playstore' && (
-                    <PlayStoreSection form={form} clientId={client.id} onSave={handleSaveForm} />
-                  )}
-                  {activeSection === 'appstore' && (
-                    <AppStoreSection form={form} clientId={client.id} onSave={handleSaveForm} />
-                  )}
-                  {activeSection === 'terms' && (
-                    <TermsSection form={form} onSave={handleSaveForm} />
-                  )}
-                </>
+            <div className={`bg-white rounded-xl shadow-sm p-4 sm:p-6 ${isFormLocked && activeSection !== 'status' ? 'pointer-events-none opacity-60' : ''}`}>
+              {activeSection === 'status' && (
+                <ProjectStatusSection
+                  projectStatus={form.project_status || 'pending'}
+                  reviewStatus={form.review_status}
+                  reviewFeedback={form.review_feedback}
+                  correctionsCompleted={form.corrections_completed}
+                  onMarkCorrectionsComplete={handleMarkCorrectionsComplete}
+                />
+              )}
+              {activeSection === 'setup' && (
+                <SetupSection form={form} clientId={client.id} onSave={handleSaveForm} />
+              )}
+              {activeSection === 'store' && (
+                <StoreOwnerSection form={form} onSave={handleSaveForm} />
+              )}
+              {activeSection === 'playstore' && (
+                <PlayStoreSection form={form} clientId={client.id} onSave={handleSaveForm} />
+              )}
+              {activeSection === 'appstore' && (
+                <AppStoreSection form={form} clientId={client.id} onSave={handleSaveForm} />
+              )}
+              {activeSection === 'terms' && (
+                <TermsSection form={form} onSave={handleSaveForm} />
               )}
             </div>
           </div>
