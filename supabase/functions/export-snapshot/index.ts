@@ -7,16 +7,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const TABLES = [
-  "profiles",
-  "clients",
-  "app_forms",
-  "form_images",
-  "notifications",
-  "client_notifications",
-  "admin_activity_logs",
-  "admin_notifications",
-] as const;
+type TableConfig = {
+  name: string;
+  orderColumn?: string; // column to order by; defaults to "created_at"
+};
+
+const TABLES: TableConfig[] = [
+  { name: "profiles" },
+  { name: "clients" },
+  { name: "app_forms" },
+  { name: "form_images", orderColumn: "uploaded_at" },
+  { name: "notifications" },
+  { name: "client_notifications" },
+  { name: "admin_activity_logs" },
+  { name: "admin_notifications" },
+];
+
+const PAGE_SIZE = 1000;
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -65,26 +72,64 @@ Deno.serve(async (req: Request) => {
 
     const snapshot: Record<string, unknown[]> = {};
     const errors: Record<string, string> = {};
+    const counts: Record<string, number> = {};
 
-    for (const table of TABLES) {
-      const { data, error } = await adminClient
-        .from(table)
-        .select("*")
-        .order("created_at", { ascending: true });
+    for (const { name: table, orderColumn } of TABLES) {
+      const sortCol = orderColumn ?? "created_at";
+      try {
+        const allRows: unknown[] = [];
+        let from = 0;
 
-      if (error) {
-        errors[table] = error.message;
+        while (true) {
+          const to = from + PAGE_SIZE - 1;
+          const { data, error } = await adminClient
+            .from(table)
+            .select("*")
+            .order(sortCol, { ascending: true })
+            .range(from, to);
+
+          if (error) {
+            // If the order column doesn't exist, retry without ordering
+            if (
+              error.message.includes("does not exist") ||
+              error.message.includes("column") && error.message.includes(sortCol)
+            ) {
+              const { data: unsorted, error: unsortedError } = await adminClient
+                .from(table)
+                .select("*")
+                .range(from, to);
+
+              if (unsortedError) throw unsortedError;
+              if (!unsorted || unsorted.length === 0) break;
+              allRows.push(...unsorted);
+              if (unsorted.length < PAGE_SIZE) break;
+              from += PAGE_SIZE;
+              continue;
+            }
+            throw error;
+          }
+
+          if (!data || data.length === 0) break;
+          allRows.push(...data);
+          if (data.length < PAGE_SIZE) break;
+          from += PAGE_SIZE;
+        }
+
+        snapshot[table] = allRows;
+        counts[table] = allRows.length;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errors[table] = msg;
         snapshot[table] = [];
-      } else {
-        snapshot[table] = data ?? [];
+        counts[table] = 0;
       }
     }
 
     const payload = {
       exported_at: new Date().toISOString(),
       exported_by: user.id,
-      tables: TABLES,
-      counts: Object.fromEntries(TABLES.map((t) => [t, snapshot[t].length])),
+      tables: TABLES.map((t) => t.name),
+      counts,
       errors: Object.keys(errors).length > 0 ? errors : null,
       data: snapshot,
     };

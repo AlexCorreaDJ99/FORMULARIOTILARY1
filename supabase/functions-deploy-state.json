@@ -13,6 +13,10 @@
       "hasChanged": false,
       "hash": "0a517553b84a0d65e85cbaa72fdf1b7ea8d96a9d1f63c9b043021dc615ce972c"
     },
+    "export-snapshot": {
+      "hasChanged": false,
+      "hash": "3b634b9d7530e49a2eb15642b40747de4a0dd053b2ef14dc83fc1ad54c925cc2"
+    },
     "generate-admin-notifications": {
       "hasChanged": false,
       "hash": "bfb77ca05465b6dbe7bd2f2f1f56705b8758446ecfd85e153e8653616421a3b6"
@@ -24,10 +28,6 @@
     "update-admin-password": {
       "hasChanged": false,
       "hash": "b86fc6cb12dfd02ac8615f5645917ac0eb6efdb34fbcbddd9f0d78e9aff27bd4"
-    },
-    "export-snapshot": {
-      "hasChanged": false,
-      "hash": "bf769adfbcf97959c8866e4fcf5c95653d8ac46e836bc06e92cac06c62187587"
     }
   }
 }
