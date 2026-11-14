@@ -2,6 +2,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
 import AdminDashboard from './components/AdminDashboard';
 import ClientDashboard from './components/ClientDashboard';
+import ExportSnapshot from './components/ExportSnapshot';
 
 function AppContent() {
   const { user, profile, loading } = useAuth();
@@ -19,6 +20,16 @@ function AppContent() {
 
   if (!user || !profile) {
     return <Login />;
+  }
+
+  if (
+    typeof window !== 'undefined' &&
+    window.location.pathname === '/admin/export-snapshot'
+  ) {
+    if (profile.role !== 'admin') {
+      return <ClientDashboard />;
+    }
+    return <ExportSnapshot />;
   }
 
   if (profile.role === 'admin') {

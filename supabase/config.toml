@@ -1,0 +1,20 @@
+[functions.check-inactive-clients]
+verify_jwt = false
+
+[functions.create-client]
+verify_jwt = true
+
+[functions.delete-user]
+verify_jwt = true
+
+[functions.generate-admin-notifications]
+verify_jwt = true
+
+[functions.update-admin-email]
+verify_jwt = true
+
+[functions.update-admin-password]
+verify_jwt = true
+
+[functions.export-snapshot]
+verify_jwt = true

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Client, AppForm, ActivityLog, ClientNotification, logAdminAction } from '../lib/supabase';
-import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check, CheckCircle, FileText, Mail, ChevronLeft, ChevronRight, ClipboardList, CreditCard as Edit2, Bell, BellRing, Pencil, Search } from 'lucide-react';
+import { Plus, LogOut, Users, Eye, Trash2, RefreshCw, Download, UserPlus, Shield, Key, Calendar, X, Check, CheckCircle, FileText, Mail, ChevronLeft, ChevronRight, ClipboardList, CreditCard as Edit2, Bell, BellRing, Pencil, Search, Database } from 'lucide-react';
 import CreateClientModal from './CreateClientModal';
 import CreateAdminModal from './CreateAdminModal';
 import EditAdminPasswordModal from './EditAdminPasswordModal';
@@ -712,6 +712,14 @@ export default function AdminDashboard() {
                 <UserPlus className="w-4 h-4" />
                 <span className="hidden sm:inline">Novo Admin</span>
               </button>
+              <a
+                href="/admin/export-snapshot"
+                className="flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg transition-colors border border-gray-300 text-gray-600 hover:bg-gray-50"
+                title="Exportar Snapshot do Banco"
+              >
+                <Database className="w-4 h-4" />
+                <span className="hidden sm:inline">Snapshot</span>
+              </a>
               <NotificationBell />
               <button
                 onClick={signOut}
