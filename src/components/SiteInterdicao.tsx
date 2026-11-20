@@ -2,7 +2,11 @@ import { AlertTriangle, ExternalLink, Lock } from 'lucide-react';
 
 const NEW_URL = 'http://formulario.tilary.com.br/';
 
-export default function SiteInterdicao() {
+type SiteInterdicaoProps = {
+  onUnlock: () => void;
+};
+
+export default function SiteInterdicao({ onUnlock }: SiteInterdicaoProps) {
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4 py-8">
       <div className="max-w-2xl w-full">
@@ -43,7 +47,16 @@ export default function SiteInterdicao() {
         </div>
 
         <p className="text-center text-gray-500 text-xs mt-6">
-          Atualize seus favoritos para o novo endereço.
+          Atualize seus{' '}
+          <button
+            type="button"
+            onClick={onUnlock}
+            className="text-inherit underline decoration-transparent hover:decoration-current focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 rounded"
+            aria-label="Acessar sistema"
+          >
+            favoritos
+          </button>{' '}
+          para o novo endereço.
         </p>
       </div>
     </div>
